@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#002060">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Gestão Turano">
+<title>Painel do Galpão</title>
+
+<!-- Fonte Inter (Google Fonts) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Tailwind CSS (CDN) e ícones Lucide (CDN), com versão fixa -->
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'] },
+        // Azul da logo da Turano (#002060) = brand-800. Para mudar a cor principal, ajuste esta escala.
+        colors: {
+          brand: { 50: '#eef3fb', 100: '#dce6f6', 200: '#b9cdec', 300: '#8eaadb', 400: '#5b80c4', 500: '#2f58a6', 600: '#14408a', 700: '#06306f', 800: '#002060', 900: '#001540' }
+        }
+      }
+    }
+  };
+</script>
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  [hidden] { display: none !important; }
+  html { -webkit-text-size-adjust: 100%; }
+  @media print {
+    aside, .rel-controles, .rel-acoes, .modal, #toast, #kpis, #titulo-aba, #sub-aba { display: none !important; }
+    body { background: #fff; }
+    #painel { display: block !important; }
+    main { max-width: none !important; padding: 0 !important; }
+  }
+</style>
+<style type="text/tailwindcss">
+  @layer base {
+    body { @apply bg-slate-50 font-sans text-slate-800 antialiased; }
+    label { @apply mb-1.5 mt-3 block text-sm font-medium text-slate-700; }
+    /* :where() mantém a especificidade baixa, para que classes como pl-11 ou text-center vençam este estilo-base */
+    input:where(:not([type=checkbox]):not([type=radio])), select, textarea {
+      @apply w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm transition-all duration-200 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 disabled:bg-slate-100 disabled:text-slate-400;
+    }
+    button { @apply cursor-pointer; }
+    button:focus-visible, summary:focus-visible { @apply outline-none ring-4 ring-brand-500/30; }
+  }
+  @layer components {
+    h2 { @apply text-xl font-semibold tracking-tight text-slate-900; }
+    h3 { @apply text-base font-semibold text-slate-900; }
+    .muted { @apply text-slate-500; }
+    .erro { @apply mt-2 text-sm font-medium text-rose-600 empty:hidden; }
+    .nota { @apply mb-3 mt-1 text-xs leading-relaxed text-slate-500; }
+
+    /* botões */
+    .prim { @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-brand-700 hover:shadow-md active:scale-[.98] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none disabled:active:scale-100; }
+    .sec { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-800 active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-slate-300 disabled:hover:bg-white disabled:hover:text-slate-700 disabled:active:scale-100; }
+    .sec.perigo { @apply border-rose-200 text-rose-600 hover:border-rose-400 hover:bg-rose-50 hover:text-rose-700 disabled:hover:border-rose-200 disabled:hover:bg-white disabled:hover:text-rose-600; }
+    .bar-btn { @apply inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-all duration-200 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-800 active:scale-95; }
+
+    /* navegação */
+    .tab { @apply flex flex-none items-center gap-2.5 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-500 transition-all duration-200 hover:bg-slate-100 hover:text-slate-900 active:scale-[.98] lg:w-full lg:py-2.5; }
+    .tab[aria-selected="true"] { @apply bg-brand-50 text-brand-800; }
+    .tab[aria-selected="true"] svg { @apply text-brand-700; }
+    .badge { @apply ml-auto inline-flex min-w-[1.4rem] items-center justify-center rounded-full bg-brand-800 px-1.5 py-0.5 text-xs font-semibold leading-none text-white; }
+    .badge.zero { @apply bg-slate-200 text-slate-500; }
+    .kpi { @apply flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md; }
+    .kpi-ic { @apply flex h-10 w-10 flex-none items-center justify-center rounded-lg; }
+
+    /* pedidos */
+    .pedido { @apply mb-4 rounded-xl border border-l-4 border-slate-200 border-l-brand-600 bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md sm:p-5; }
+    .pedido.entrada { @apply border-l-emerald-500; }
+    .topo { @apply mb-1 flex flex-wrap items-center gap-2; }
+    .tipo { @apply inline-flex items-center gap-1 rounded-md bg-brand-600 px-2 py-0.5 text-xs font-semibold text-white; }
+    .tipo.ent, .entrada .tipo { @apply bg-emerald-600; }
+    .tipo.ajuste { @apply bg-amber-600; }
+    .pid { @apply text-lg font-semibold tracking-tight text-slate-900; }
+    .chip { @apply inline-flex items-center rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-700; }
+    .chip.atraso { @apply bg-rose-50 text-rose-700; }
+    .chip.hoje { @apply bg-amber-50 text-amber-700; }
+    .chip.ok { @apply bg-emerald-50 text-emerald-700; }
+    .chip.rec, .chip.off { @apply bg-slate-100 text-slate-600; }
+    .meta { @apply my-3 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 xl:grid-cols-5; }
+    .meta span { @apply block text-xs text-slate-500; }
+    .meta b { @apply break-words text-sm font-semibold text-slate-800; }
+    .obs { @apply my-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700; }
+    .il { @apply grid grid-cols-3 items-center gap-x-3 gap-y-1 border-t border-slate-100 py-3 sm:grid-cols-[minmax(0,1fr)_5.5rem_5.5rem_7.5rem]; }
+    .il.cab { @apply hidden border-t-0 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400 sm:grid; }
+    .il .nome { @apply col-span-3 break-words text-sm font-medium text-slate-900 sm:col-span-1; }
+    .il .c { @apply text-sm text-slate-700 sm:text-right; }
+    .il.cab .c { @apply text-[11px] text-slate-400; }
+    .il .c::before { @apply mb-0.5 block text-[11px] font-medium text-slate-400 sm:hidden; content: attr(data-l); }
+    .il input { @apply px-3 py-2 text-left font-semibold sm:text-right; }
+    .il .alerta { @apply col-span-full text-xs font-medium text-rose-600; }
+    .il .alerta.aviso { @apply text-amber-700; }
+    .acoes { @apply mt-4 flex flex-wrap items-end gap-3; }
+    .acoes .campo { @apply min-w-[9rem] flex-1 basis-40; }
+    .acoes .campo label { @apply mt-0; }
+    .vazio { @apply rounded-xl border border-dashed border-slate-300 bg-white px-4 py-12 text-center text-sm text-slate-500; }
+    .vazio.erro { @apply text-rose-600; }
+
+    /* estoque */
+    .barra { @apply mb-3 grid grid-cols-2 items-center gap-2 sm:grid-cols-[2fr_1.4fr_1.4fr_auto]; }
+    .barra > input { @apply col-span-2 sm:col-span-1; }
+    .mat { @apply mb-2.5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md; }
+    .mat.oculto { @apply opacity-60; }
+    .mat .l1 { @apply grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center; }
+    .mat .nome { @apply break-words text-sm font-medium text-slate-900; }
+    .mat .cat { @apply mt-0.5 text-xs text-slate-500; }
+    .nums { @apply grid grid-cols-4 gap-3 text-left md:w-[22rem] md:text-right; }
+    .nums div span { @apply block text-[11px] text-slate-400; }
+    .nums div b { @apply text-base font-semibold text-slate-900; }
+    .nums .neg b { @apply text-rose-600; }
+    .mat .acoes { @apply mt-3; }
+    .mat .acoes button { @apply px-3 py-1.5 text-xs; }
+    .mat .ajuste { @apply mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3.5; }
+    .novo { @apply mb-4 rounded-xl border border-brand-200 bg-white p-4 shadow-sm; }
+    .grade2 { @apply grid gap-x-3 sm:grid-cols-2 lg:grid-cols-3; }
+
+    /* histórico */
+    .filtros { @apply mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm; }
+    .filtros .grade { @apply grid grid-cols-2 gap-x-3 sm:grid-cols-3 xl:grid-cols-5; }
+    .filtros label { @apply mt-2; }
+    .filtros .linha { @apply mt-3 flex flex-wrap items-center gap-3; }
+    .filtros .linha .nota { @apply m-0 flex-1 basis-56; }
+    details.hist { @apply mb-2.5 rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200 open:shadow-md; }
+    details.hist summary { @apply flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl px-4 py-3 text-sm transition-all duration-200 hover:bg-slate-50; }
+    details.hist summary::-webkit-details-marker { display: none; }
+    details.hist .corpo { @apply px-4 pb-4; }
+    .aj { @apply mb-2.5 rounded-xl border border-l-4 border-slate-200 border-l-amber-500 bg-white p-4 shadow-sm; }
+    .aj .mov { @apply my-1.5 text-lg font-bold tracking-tight text-slate-900; }
+    .aj .mov.neg { @apply text-rose-600; }
+    .aj .quem2 { @apply mt-1.5 text-xs text-slate-500; }
+
+    /* relatórios */
+    .rel-controles { @apply rounded-xl border border-slate-200 bg-white p-4 shadow-sm; }
+    .rel-controles .grade { @apply grid grid-cols-1 gap-x-3 sm:grid-cols-2 xl:grid-cols-4; }
+    .rel-controles label { @apply mt-2; }
+    .rel-papel { @apply mt-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm; }
+    .rel-papel h2 { @apply mb-1; }
+    .atrasado { @apply font-semibold text-rose-600; }
+    .pendente { @apply font-medium text-amber-600; }
+    .rel-papel h3 { @apply mt-6 border-b-2 border-brand-700 pb-1 text-base font-semibold text-brand-800; }
+    .rel-totais { @apply my-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm; }
+    .tabela-wrap { @apply mt-2 overflow-x-auto; }
+    table.rel { @apply w-full min-w-[600px] border-collapse text-sm; }
+    table.rel th { @apply whitespace-nowrap border-b-2 border-brand-800 bg-brand-50 px-2.5 py-2 text-left text-xs font-semibold text-brand-800; }
+    table.rel td { @apply border-b border-slate-100 px-2.5 py-2 align-top; }
+    table.rel td.n { @apply whitespace-nowrap font-semibold; }
+    .rel-acoes { @apply mt-4 flex flex-wrap gap-3; }
+
+    /* administradores */
+    .adm { @apply mb-2.5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-4 shadow-sm; }
+    .adm .nome { @apply min-w-[8rem] flex-1 text-base font-semibold text-slate-900; }
+    .adm .acoes { @apply m-0; }
+    .adm .acoes button { @apply px-3 py-1.5 text-xs; }
+    .troca { @apply basis-full rounded-xl border border-slate-200 bg-slate-50 p-3.5; }
+    .mostrar { @apply mt-1.5 flex items-center gap-2 text-xs font-normal text-slate-500; }
+    .mostrar input { @apply h-4 w-4 rounded border-slate-300 text-brand-800; }
+
+    /* janela de confirmação e aviso */
+    .modal { @apply fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm; }
+    .modal .caixa { @apply w-full max-w-md rounded-2xl bg-white p-6 shadow-xl; }
+    .modal h3 { @apply text-lg font-semibold text-slate-900; }
+    .modal p { @apply mb-3 mt-1 whitespace-pre-line text-sm text-slate-500; }
+    .modal .botoes { @apply mt-5 flex flex-wrap justify-end gap-3; }
+    /* nota fiscal e anexos */
+    .nf { @apply mt-4 rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 sm:p-4; }
+    .nf-cab { @apply flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-800; }
+    .nf-num { @apply mt-2 flex flex-wrap items-end gap-2; }
+    .nf-num .campo { @apply min-w-[10rem] flex-1; }
+    .nf-num label { @apply mt-0; }
+    .nf-arqs { @apply mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-6; }
+    .arq { @apply relative overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm; }
+    .arq .mini { @apply flex aspect-square w-full items-center justify-center overflow-hidden bg-slate-100 text-slate-400 transition-all duration-200 hover:opacity-90; }
+    .arq .mini img { @apply h-full w-full object-cover; }
+    .arq .rot { @apply truncate px-1.5 py-1 text-[10px] text-slate-500; }
+    .arq .tirar { @apply absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-slate-600 shadow ring-1 ring-slate-200 transition-all duration-200 hover:bg-rose-600 hover:text-white; }
+    .nf-acoes { @apply mt-3 flex flex-wrap gap-2; }
+    .nf-acoes label.botao { @apply m-0 inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-brand-400 hover:text-brand-800; }
+    .nf-acoes input[type=file] { @apply sr-only; }
+    .nf .estado { @apply mt-2 text-xs font-medium text-slate-600 empty:hidden; }
+    .visor { @apply fixed inset-0 z-50 flex flex-col bg-slate-950/95; }
+    .visor-cab { @apply flex items-center gap-1 px-3 py-2 text-white; }
+    .visor-btn { @apply flex h-10 w-10 flex-none cursor-pointer items-center justify-center rounded-lg text-white/90 transition-all duration-200 hover:bg-white/10 disabled:opacity-30; }
+    .visor-corpo { @apply flex min-h-0 flex-1 items-center justify-center p-2 sm:p-4; }
+    .visor-corpo img { @apply max-h-full max-w-full rounded-lg object-contain shadow-2xl; }
+    .visor-corpo iframe { @apply h-full w-full rounded-lg bg-white; }
+    .visor-corpo .aviso-v { @apply max-w-sm rounded-xl bg-white p-6 text-center text-sm text-slate-600; }
+    /* cadastros */
+    .cad-sec { @apply mb-8; }
+    .cad-sec h2 { @apply mb-1 flex items-center gap-2 text-lg font-semibold text-slate-900; }
+    .cnpj { @apply font-mono text-xs text-slate-500; }
+    #toast { @apply fixed bottom-6 left-1/2 z-50 max-w-[92vw] -translate-x-1/2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-lg; }
+    #toast.erro-t { @apply bg-rose-600; }
+  }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- ENTRAR -->
+<div id="login-wrap" class="relative min-h-screen overflow-hidden bg-brand-800">
+ <div aria-hidden="true" class="pointer-events-none absolute inset-0" style="background:radial-gradient(circle at 15% 10%,rgba(255,255,255,.13),transparent 42%),radial-gradient(circle at 90% 95%,rgba(56,170,225,.35),transparent 48%)"></div>
+ <main class="relative mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-10">
+  <div class="mb-5 flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/85"><i data-lucide="shield-check" class="h-4 w-4"></i>Painel de gestão</div>
+  <form id="login" onsubmit="return false" class="rounded-2xl bg-white p-6 shadow-2xl shadow-black/30 ring-1 ring-white/10 sm:p-8">
+    <div class="flex flex-col items-center text-center">
+      <!-- LOGO (completa): para trocar, substitua o conteúdo de src pelo link da nova imagem (ou outra imagem em base64) -->
+      <img src="data:image/png;base64,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" alt="Turano Construtora" class="h-auto w-44">
+      <h2 class="mt-6">Acesso do administrador</h2>
+      <p class="muted mt-1 text-sm">Área restrita. Entre com o seu usuário e a sua senha de administrador.</p>
+    </div>
+    <label for="usuario">Usuário</label>
+    <div class="relative"><i data-lucide="user" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i><input id="usuario" class="pl-10" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="40"></div>
+    <label for="senha">Senha</label>
+    <div class="relative"><i data-lucide="lock" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i><input id="senha" class="pl-10" type="password" autocomplete="current-password" maxlength="40"></div>
+    <label class="mostrar" for="ver-senha"><input type="checkbox" id="ver-senha">Mostrar a senha</label>
+    <div class="erro" id="erro-login" role="alert"></div>
+    <button class="prim mt-5 w-full py-3" id="btn-entrar" type="submit">Entrar</button>
+  </form>
+  <p class="mt-6 text-center text-xs text-white/70">Uso exclusivo dos administradores do galpão.</p>
+ </main>
+</div>
+
+<!-- PAINEL -->
+<div id="painel" class="lg:grid lg:min-h-screen lg:grid-cols-[16rem_minmax(0,1fr)]" hidden>
+  <aside class="sticky top-0 z-30 flex flex-wrap items-center gap-x-3 border-b border-slate-200 bg-white px-4 py-2.5 lg:h-screen lg:flex-col lg:flex-nowrap lg:items-stretch lg:gap-x-0 lg:border-b-0 lg:border-r lg:py-5">
+    <div class="order-1 flex items-center gap-3 lg:px-1">
+      <img src="data:image/png;base64,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" alt="Turano Construtora" class="h-9 w-auto">
+      <div class="leading-tight">
+        <div class="text-sm font-semibold text-brand-800">Turano Construtora</div>
+        <div class="text-xs text-slate-500">Painel do Galpão</div>
+      </div>
+    </div>
+    <div class="order-2 ml-auto flex items-center gap-2 lg:order-3 lg:ml-0 lg:mt-auto lg:flex-col lg:items-stretch lg:gap-3 lg:border-t lg:border-slate-100 lg:pt-4">
+      <span id="quem" class="hidden max-w-[10rem] truncate rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-800 sm:inline-block lg:max-w-none lg:text-center" hidden></span>
+      <div class="flex gap-2 lg:flex-col">
+        <button id="btn-atualizar" class="bar-btn" title="Atualizar" aria-label="Atualizar" hidden><i data-lucide="refresh-cw" class="h-4 w-4"></i><span class="hidden lg:inline">Atualizar</span></button>
+        <button id="btn-sair" class="bar-btn" title="Sair" aria-label="Sair" hidden><i data-lucide="log-out" class="h-4 w-4"></i><span class="hidden lg:inline">Sair</span></button>
+      </div>
+    </div>
+    <nav class="order-3 mt-2 flex w-full gap-1 overflow-x-auto pb-1 lg:order-2 lg:mt-6 lg:flex-col lg:overflow-visible lg:pb-0" role="tablist" id="abas" aria-label="Seções do painel">
+      <button class="tab" role="tab" data-aba="pend" aria-selected="true"><i data-lucide="clock" class="h-4 w-4 flex-none"></i><span>Pendentes</span><span class="badge" id="n-pend">0</span></button>
+      <button class="tab" role="tab" data-aba="aprov" aria-selected="false"><i data-lucide="package-check" class="h-4 w-4 flex-none"></i><span>Aguardando baixa</span><span class="badge" id="n-aprov">0</span></button>
+      <button class="tab" role="tab" data-aba="est" aria-selected="false"><i data-lucide="boxes" class="h-4 w-4 flex-none"></i><span>Estoque</span></button>
+      <button class="tab" role="tab" data-aba="hist" aria-selected="false"><i data-lucide="history" class="h-4 w-4 flex-none"></i><span>Histórico</span></button>
+      <button class="tab" role="tab" data-aba="rel" aria-selected="false"><i data-lucide="file-text" class="h-4 w-4 flex-none"></i><span>Relatórios</span></button>
+      <button class="tab" role="tab" data-aba="cad" aria-selected="false"><i data-lucide="building-2" class="h-4 w-4 flex-none"></i><span>Obras e fornecedores</span></button>
+      <button class="tab" role="tab" data-aba="eq" aria-selected="false"><i data-lucide="hard-hat" class="h-4 w-4 flex-none"></i><span>Equipe da obra</span></button>
+      <button class="tab" role="tab" data-aba="adm" aria-selected="false"><i data-lucide="users" class="h-4 w-4 flex-none"></i><span>Administradores</span></button>
+      <button class="tab" role="tab" data-aba="ac" aria-selected="false"><i data-lucide="shield-check" class="h-4 w-4 flex-none"></i><span>Acessos</span></button>
+    </nav>
+  </aside>
+
+  <main class="mx-auto w-full min-w-0 max-w-5xl px-4 py-6 lg:px-8 lg:py-8">
+    <div class="mb-5">
+      <h1 id="titulo-aba" class="text-2xl font-semibold tracking-tight text-slate-900"></h1>
+      <p id="sub-aba" class="mt-1 text-sm text-slate-500"></p>
+    </div>
+    <div id="kpis" class="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div class="kpi"><span class="kpi-ic bg-brand-50 text-brand-700"><i data-lucide="clock" class="h-5 w-5"></i></span><div><div class="text-2xl font-semibold leading-none text-slate-900" id="k-pend">0</div><div class="mt-1 text-xs text-slate-500">Pendentes</div></div></div>
+      <div class="kpi"><span class="kpi-ic bg-emerald-50 text-emerald-700"><i data-lucide="package-check" class="h-5 w-5"></i></span><div><div class="text-2xl font-semibold leading-none text-slate-900" id="k-aprov">0</div><div class="mt-1 text-xs text-slate-500">Aguardando baixa</div></div></div>
+      <div class="kpi"><span class="kpi-ic bg-amber-50 text-amber-700"><i data-lucide="calendar-days" class="h-5 w-5"></i></span><div><div class="text-2xl font-semibold leading-none text-slate-900" id="k-hoje">0</div><div class="mt-1 text-xs text-slate-500">Programados p/ hoje</div></div></div>
+      <div class="kpi"><span class="kpi-ic bg-rose-50 text-rose-600"><i data-lucide="triangle-alert" class="h-5 w-5"></i></span><div><div class="text-2xl font-semibold leading-none text-slate-900" id="k-atraso">0</div><div class="mt-1 text-xs text-slate-500">Com data vencida</div></div></div>
+    </div>
+    <div id="aba-pend"></div>
+    <div id="aba-aprov" hidden></div>
+    <div id="aba-est" hidden></div>
+    <div id="aba-hist" hidden></div>
+    <div id="aba-rel" hidden></div>
+    <div id="aba-cad" hidden></div>
+    <div id="aba-eq" hidden></div>
+    <div id="aba-adm" hidden></div>
+    <div id="aba-ac" hidden></div>
+  </main>
+</div>
+
+<div class="visor" id="visor" hidden role="dialog" aria-modal="true" aria-labelledby="v-nome">
+  <div class="visor-cab">
+    <span id="v-nome" class="min-w-0 flex-1 truncate text-sm font-medium"></span>
+    <span id="v-pos" class="text-xs text-white/70"></span>
+    <button class="visor-btn" id="v-ant" type="button" aria-label="Anterior"><i data-lucide="chevron-left" class="h-5 w-5"></i></button>
+    <button class="visor-btn" id="v-prox" type="button" aria-label="Próximo"><i data-lucide="chevron-right" class="h-5 w-5"></i></button>
+    <a class="visor-btn" id="v-baixar" aria-label="Baixar arquivo" title="Baixar"><i data-lucide="download" class="h-5 w-5"></i></a>
+    <button class="visor-btn" id="v-fechar" type="button" aria-label="Fechar" title="Fechar"><i data-lucide="x" class="h-5 w-5"></i></button>
+  </div>
+  <div class="visor-corpo" id="v-corpo"></div>
+</div>
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="m-titulo">
+  <div class="caixa">
+    <h3 id="m-titulo"></h3>
+    <p id="m-texto"></p>
+    <div id="m-campo" hidden><label for="m-valor" id="m-rotulo"></label><input id="m-valor" maxlength="200"></div>
+    <div class="erro" id="m-erro" role="alert"></div>
+    <div class="botoes"><button class="sec" id="m-voltar">Voltar</button><button class="prim" id="m-ok">Confirmar</button></div>
+  </div>
+</div>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+  var MANIFESTO = 'manifest-painel.json';
+  // ---------- conexão com o servidor ----------
+  // Dentro do Google (link /exec) a tela usa google.script.run. No site do GitHub Pages ela chama o MESMO servidor
+  // pela internet, o que evita o erro do Google quando há mais de uma conta logada no navegador.
+  // COLE ABAIXO o ID da implantação: o trecho entre /s/ e /exec do link do app da Web.
+  var API_ID = 'COLE-AQUI-O-ID-DA-IMPLANTACAO';
+  var DENTRO_DO_GOOGLE = !!(window.google && google.script && google.script.run);
+  if (!DENTRO_DO_GOOGLE) (function () {
+    var url = 'https:' + '/' + '/script.google.com/macros/s/' + API_ID + '/exec';
+    function erroDeRede(e) {
+      var m = (e && e.message) || String(e);
+      return /fetch|network|load failed/i.test(m) ? 'Sem conexão com o servidor. Confira a internet e tente de novo.' : m;
+    }
+    function chamada(ok, falha) {
+      return new Proxy({}, { get: function (alvo, nome) {
+        if (nome === 'withSuccessHandler') return function (h) { return chamada(h, falha); };
+        if (nome === 'withFailureHandler') return function (h) { return chamada(ok, h); };
+        return function () {
+          var args = Array.prototype.slice.call(arguments);
+          var falhou = function (e) { if (falha) falha(new Error(erroDeRede(e))); else console.error(erroDeRede(e)); };
+          if (API_ID.indexOf('COLE-AQUI') === 0) { falhou(new Error('Site ainda não configurado: cole o ID da implantação (API_ID) no arquivo.')); return; }
+          fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: String(nome), args: args }) })
+            .then(function (r) { return r.text(); })
+            .then(function (t) {
+              var j; try { j = JSON.parse(t); } catch (e) { throw new Error('O servidor não respondeu como esperado. Confira o ID da implantação e se ela está publicada para "Qualquer pessoa".'); }
+              if (!j.ok) throw new Error(j.error);
+              return j.result;
+            })
+            .then(function (v) { if (ok) ok(v); }, falhou);
+        };
+      } });
+    }
+    window.google = window.google || {};
+    window.google.script = { run: chamada(null, null) };
+  })();
+  // No site, o celular pode instalar o app com o logo da Turano (dentro do Google isso daria erro, por isso só aqui).
+  if (!DENTRO_DO_GOOGLE) [['manifest', MANIFESTO], ['icon', 'icone-192.png'], ['apple-touch-icon', 'icone-180.png']].forEach(function (p) {
+    var l = document.createElement('link'); l.rel = p[0]; l.href = p[1]; document.head.appendChild(l);
+  });
+  var S = { cod: '', admin: '', obras: [], rel: null, hoje: '', pend: [], aprov: [], hres: null, histSujo: true, fh: { tipo: '', status: '', obra: '', de: '', ate: '', q: '', limite: 100 }, adm: null, cad: null, filtroCad: { q: '' }, eq: null, filtroEq: { q: '' }, fa: { perfil: '', resultado: '', q: '' }, ac: null, est: null, aba: 'pend', filtroEst: { q: '', cat: '', modo: 'ativos', limite: 60 }, estSujo: true };
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---------- ícones (Lucide): qualquer <i data-lucide="nome"> vira um ícone, mesmo os criados depois ----------
+  function ic(nome, cls) { var i = document.createElement('i'); i.setAttribute('data-lucide', nome); i.className = cls || 'h-4 w-4'; return i; }
+  // botões conhecidos ganham o ícone automaticamente (pelo texto), sem precisar mexer em cada tela
+  var ICONES_BOTAO = {
+    'Aprovar pedido': 'check', 'Recusar': 'x', 'Dar baixa': 'package-check', 'Cancelar pedido': 'ban',
+    'Ajustar saldo': 'sliders-horizontal', 'Ocultar': 'eye-off', 'Reativar': 'rotate-ccw', 'Salvar ajuste': 'check',
+    '+ Novo material': 'plus', 'Cadastrar material': 'plus', 'Cadastrar administrador': 'user-plus', 'Cadastrar pessoa': 'user-plus', 'Trocar senha': 'key-round', 'Trocar minha senha': 'key-round',
+    'Desativar': 'user-x', 'Salvar nova senha': 'check', 'Gerar relatório': 'chart-column', 'Baixar PDF': 'download',
+    'Imprimir': 'printer', 'Limpar filtros': 'eraser', 'Mostrar mais': 'chevrons-down', 'Cadastrar obra': 'plus', 'Cadastrar fornecedor': 'plus', 'Editar': 'pencil', 'Salvar': 'check', 'Salvar número': 'check'
+  };
+  function decorarBotoes() {
+    Array.prototype.forEach.call(document.querySelectorAll('button'), function (b) {
+      if (b.querySelector('svg, i')) return;
+      var nome = ICONES_BOTAO[b.textContent.trim()];
+      if (nome) b.insertBefore(ic(nome, 'h-4 w-4'), b.firstChild);
+    });
+  }
+  (function () {
+    var agendado = null;
+    function pintar() { agendado = null; try { decorarBotoes(); if (window.lucide) window.lucide.createIcons(); } catch (e) { /* sem ícones, o texto continua */ } }
+    new MutationObserver(function () { if (!agendado) agendado = requestAnimationFrame(pintar); }).observe(document.body, { childList: true, subtree: true });
+    pintar();
+  })();
+  var TITULOS = {
+    pend: ['Pendentes de aprovação', 'Pedidos esperando a sua decisão.'],
+    aprov: ['Aguardando baixa', 'Pedidos aprovados: informe o que realmente saiu ou entrou.'],
+    est: ['Estoque', 'Saldo no galpão, reservas e material em trânsito.'],
+    hist: ['Histórico', 'Pedidos encerrados e ajustes de saldo, com filtros.'],
+    rel: ['Relatórios', 'Retiradas e entradas feitas, estoque disponível, o que vai chegar e o que está programado para sair. Veja na tela ou baixe em PDF.'],
+    cad: ['Obras e fornecedores', 'Obras e fornecedores que aparecem nos pedidos. A equipe da obra também pode cadastrar pela tela de pedido.'],
+    eq: ['Equipe da obra', 'Quem pode pedir material pelo link da obra. Cada pessoa entra com usuário e senha próprios.'],
+    adm: ['Administradores', 'Quem tem acesso a este painel. Cada um entra com usuário e senha próprios.'],
+    ac: ['Acessos', 'Quem entrou, quando, e as tentativas que não deram certo.']
+  };
+
+  // ---------- utilidades ----------
+  function el(tag, attrs) {
+    var e = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      if (k === 'cls') e.className = attrs[k];
+      else if (k === 'txt') e.textContent = attrs[k];
+      else if (k === 'data') Object.keys(attrs[k]).forEach(function (d) { e.dataset[d] = attrs[k][d]; });
+      else if (k.indexOf('on') === 0) e.addEventListener(k.slice(2), attrs[k]);
+      else e.setAttribute(k, attrs[k]);
+    });
+    for (var i = 2; i < arguments.length; i++) {
+      var c = arguments[i]; if (c === null || c === undefined || c === false) continue;
+      e.appendChild(typeof c === 'string' || typeof c === 'number' ? document.createTextNode(String(c)) : c);
+    }
+    return e;
+  }
+  function semAcento(s) { return String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+  function msg(e) { return String((e && e.message) || e || 'Erro inesperado.').replace(/^Error:\s{0,20}/, ''); }
+  function fmtD(iso) { var p = String(iso || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : (iso || '—'); }
+  function fmtDT(s) { if (!s) return '—'; var a = s.split(' '); return fmtD(a[0]) + (a[1] ? ' ' + a[1] : ''); }
+  function diaMais(iso, n) { var p = iso.split('-'); var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]) + n, 12); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function chamar(fn) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return new Promise(function (ok, falha) {
+      var r = google.script.run.withSuccessHandler(ok).withFailureHandler(function (e) {
+        if (S.cod && msg(e).indexOf('Sua sessão terminou') === 0) sair(msg(e));   // ficou parado muito tempo, ou o acesso foi desativado
+        falha(e);
+      });
+      r[fn].apply(r, args);
+    });
+  }
+  var tt = null;
+  function aviso(texto, erro) {
+    var t = $('toast'); t.textContent = texto; t.className = erro ? 'erro-t' : ''; t.hidden = false;
+    clearTimeout(tt); tt = setTimeout(function () { t.hidden = true; }, erro ? 7000 : 3500);
+  }
+
+  // ---------- janela de confirmação ----------
+  var resolverModal = null;
+  function confirmar(o) {
+    return new Promise(function (res) {
+      $('m-titulo').textContent = o.titulo; $('m-texto').textContent = o.texto || '';
+      $('m-campo').hidden = !o.campo; $('m-valor').value = ''; $('m-erro').textContent = '';
+      if (o.campo) $('m-rotulo').textContent = o.campo;
+      $('m-ok').textContent = o.ok || 'Confirmar';
+      $('m-ok').className = 'prim';
+      $('modal').hidden = false;
+      resolverModal = function (v) { $('modal').hidden = true; resolverModal = null; res(v); };
+      (o.campo ? $('m-valor') : $('m-voltar')).focus();
+      $('m-ok').onclick = function () {
+        var v = $('m-valor').value.trim();
+        if (o.campo && o.obrigatorio && v.length < 3) { $('m-erro').textContent = 'Preencha este campo.'; return; }
+        resolverModal({ ok: true, valor: v });
+      };
+      $('m-voltar').onclick = function () { resolverModal({ ok: false }); };
+    });
+  }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && resolverModal) resolverModal({ ok: false }); });
+
+  // ---------- acesso ----------
+  function entrar() {
+    var usuario = $('usuario').value.trim(), senha = $('senha').value;
+    if (!usuario) { $('erro-login').textContent = 'Digite o usuário.'; return; }
+    if (!senha) { $('erro-login').textContent = 'Digite a senha.'; return; }
+    $('erro-login').textContent = ''; $('btn-entrar').disabled = true; $('btn-entrar').textContent = 'Verificando...';
+    chamar('entrar', 'admin', usuario, senha).then(function (r) {
+      return chamar('adminPainel', r.token).then(function (d) {
+        S.cod = r.token; aplicar(d);
+        $('login-wrap').hidden = true; $('painel').hidden = false;
+        $('btn-atualizar').hidden = false; $('btn-sair').hidden = false;
+        $('usuario').value = ''; $('senha').value = ''; mostrarAba('pend');
+      });
+    }).catch(function (e) { $('erro-login').textContent = msg(e); })
+      .then(function () { $('btn-entrar').disabled = false; $('btn-entrar').textContent = 'Entrar'; });
+  }
+  $('ver-senha').addEventListener('change', function () { $('senha').type = $('ver-senha').checked ? 'text' : 'password'; });
+  $('login').addEventListener('submit', function (e) { e.preventDefault(); entrar(); });
+  // Volta para a tela de acesso sem recarregar a página (recarregar deixa a tela em branco dentro do Apps Script)
+  function sair(aviso) {
+    seqH++; seqA++; clearTimeout(timerH); clearTimeout(timerA);
+    if (typeof aviso !== 'string') aviso = '';
+    if (S.cod) { try { google.script.run.encerrarSessao(S.cod); } catch (e) { /* a sessão cai sozinha depois */ } }
+    if (resolverModal) resolverModal({ ok: false });
+    S.eq = null; S.filtroEq = { q: '' }; S.fa = { perfil: '', resultado: '', q: '' }; S.ac = null;
+    S.cod = ''; S.admin = ''; S.obras = []; S.rel = null; S.pend = []; S.aprov = []; S.hres = null; S.histSujo = true;
+    S.fh = { tipo: '', status: '', obra: '', de: '', ate: '', q: '', limite: 100 }; S.adm = null; S.est = null; S.aba = 'pend';
+    S.filtroEst = { q: '', cat: '', modo: 'ativos', limite: 60 }; S.estSujo = true;
+    montouH = false; montouR = false;
+    ['aba-pend', 'aba-aprov', 'aba-est', 'aba-hist', 'aba-rel', 'aba-cad', 'aba-eq', 'aba-adm', 'aba-ac'].forEach(function (id) { $(id).innerHTML = ''; });
+    S.cad = null; S.filtroCad = { q: '' }; fecharVisor(); limparArquivos();
+    $('painel').hidden = true; $('login-wrap').hidden = false;
+    ['btn-atualizar', 'btn-sair', 'quem'].forEach(function (id) { $(id).hidden = true; });
+    $('quem').textContent = ''; $('usuario').value = ''; $('senha').value = ''; $('ver-senha').checked = false; $('senha').type = 'password';
+    $('erro-login').textContent = aviso;
+    window.scrollTo(0, 0); $('usuario').focus();
+  }
+  $('btn-sair').addEventListener('click', function () { sair(); });
+  $('btn-atualizar').addEventListener('click', function () { recarregar(true); });
+
+  function aplicar(d) {
+    S.obras = d.obras || [];
+    S.hoje = d.hoje; S.pend = d.pendentes; S.aprov = d.aprovados; S.admin = d.admin || '';
+    $('quem').textContent = S.admin ? 'Olá, ' + S.admin : ''; $('quem').hidden = !S.admin;
+    atualizarKpis();
+    $('n-pend').textContent = S.pend.length; $('n-pend').className = 'badge' + (S.pend.length ? '' : ' zero');
+    $('n-aprov').textContent = S.aprov.length; $('n-aprov').className = 'badge' + (S.aprov.length ? '' : ' zero');
+  }
+  function atualizarKpis() {
+    var todos = S.pend.concat(S.aprov);
+    $('k-pend').textContent = S.pend.length; $('k-aprov').textContent = S.aprov.length;
+    $('k-hoje').textContent = todos.filter(function (p) { return p.dataProg === S.hoje; }).length;
+    $('k-atraso').textContent = todos.filter(function (p) { return p.dataProg && p.dataProg < S.hoje; }).length;
+  }
+  function recarregar(manual) {
+    return chamar('adminPainel', S.cod).then(function (d) {
+      aplicar(d);
+      S.histSujo = true;
+      if (S.aba === 'est' || S.estSujo) S.est = null;
+      mostrarAba(S.aba);
+      if (manual) aviso('Painel atualizado.');
+    }).catch(function (e) { aviso(msg(e), true); });
+  }
+
+  // ---------- abas ----------
+  document.getElementById('abas').addEventListener('click', function (e) {
+    var b = e.target.closest('.tab'); if (b) mostrarAba(b.dataset.aba);
+  });
+  function mostrarAba(a) {
+    S.aba = a;
+    $('titulo-aba').textContent = TITULOS[a][0]; $('sub-aba').textContent = TITULOS[a][1];
+    $('kpis').hidden = !(a === 'pend' || a === 'aprov');
+    ['pend', 'aprov', 'est', 'hist', 'rel', 'cad', 'eq', 'adm', 'ac'].forEach(function (k) { $('aba-' + k).hidden = (k !== a); });
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) { t.setAttribute('aria-selected', t.dataset.aba === a ? 'true' : 'false'); });
+    if (a === 'pend') desenharPedidos('aba-pend', S.pend, 'pend');
+    if (a === 'aprov') desenharPedidos('aba-aprov', S.aprov, 'aprov');
+    if (a === 'hist') carregarHistorico();
+    if (a === 'rel') carregarRelatorios();
+    if (a === 'adm') carregarAdmins();
+    if (a === 'eq') carregarEquipe();
+    if (a === 'cad') carregarCadastros();
+    if (a === 'ac') carregarAcessos();
+    if (a === 'est') carregarEstoque();
+  }
+
+  // ---------- pedidos ----------
+  function chipData(p) {
+    if (!p.dataProg) return null;
+    if (p.dataProg < S.hoje) return el('span', { cls: 'chip atraso', txt: 'Atrasado' });
+    if (p.dataProg === S.hoje) return el('span', { cls: 'chip hoje', txt: 'Hoje' });
+    if (p.dataProg === diaMais(S.hoje, 1)) return el('span', { cls: 'chip', txt: 'Amanhã' });
+    return null;
+  }
+  function cabecalhoPedido(p) {
+    var ret = p.tipo === 'Retirada';
+    return [
+      el('div', { cls: 'topo' },
+        el('span', { cls: 'tipo' + (ret ? '' : ' ent') }, ic(ret ? 'package-minus' : 'package-plus', 'h-3.5 w-3.5'), p.tipo), el('span', { cls: 'pid', txt: p.id }), chipData(p),
+        p.status !== 'Pendente' && p.status !== 'Aprovado' ? el('span', { cls: 'chip ' + (p.status === 'Concluído' ? 'ok' : 'rec'), txt: p.status }) : null),
+      el('div', { cls: 'meta' },
+        el('div', null, el('span', { txt: ret ? 'Obra de destino' : (p.origem === 'Fornecedor' ? 'Fornecedor (compra)' : 'Obra de origem') }), el('b', { txt: p.origem === 'Fornecedor' ? p.fornecedor : p.obra }),
+          p.origem === 'Fornecedor' && p.fornecedorCnpj ? el('span', { cls: 'cnpj', txt: 'CNPJ ' + p.fornecedorCnpj }) : null),
+        el('div', null, el('span', { txt: ret ? 'Retirada programada' : 'Chegada programada' }), el('b', { txt: fmtD(p.dataProg) })),
+        el('div', null, el('span', { txt: 'Solicitante' }), el('b', { txt: p.solicitante })),
+        el('div', null, el('span', { txt: 'Solicitado em' }), el('b', { txt: fmtDT(p.solicitadoEm) })),
+        p.aprovadoEm ? el('div', null, el('span', { txt: 'Aprovado' + (p.aprovadoPor ? ' por' : ' em') }), el('b', { txt: (p.aprovadoPor ? p.aprovadoPor + ' · ' : '') + fmtDT(p.aprovadoEm) })) : null,
+        p.concluidoEm ? el('div', null, el('span', { txt: 'Baixa dada' + (p.concluidoPor ? ' por' : ' em') }), el('b', { txt: (p.concluidoPor ? p.concluidoPor + ' · ' : '') + fmtDT(p.concluidoEm) })) : null,
+        p.dataReal ? el('div', null, el('span', { txt: 'Data real' }), el('b', { txt: fmtD(p.dataReal) })) : null,
+        !ret && p.notaFiscal ? el('div', null, el('span', { txt: 'Nota fiscal' }), el('b', { txt: p.notaFiscal })) : null),
+      p.obs ? el('div', { cls: 'obs', txt: 'Observação do solicitante: ' + p.obs }) : null,
+      p.obsAdmin ? el('div', { cls: 'obs', txt: 'Anotações do galpão: ' + p.obsAdmin }) : null
+    ];
+  }
+  function celula(rot, valor) { return el('div', { cls: 'c', txt: valor, data: { l: rot } }); }
+
+  function desenharPedidos(destino, lista, modo) {
+    var box = $(destino); box.innerHTML = '';
+    if (!lista.length) {
+      box.appendChild(el('div', { cls: 'vazio', txt: modo === 'pend' ? 'Nenhum pedido aguardando aprovação.' : 'Nenhum pedido aprovado aguardando baixa.' }));
+      return;
+    }
+    lista.forEach(function (p) { box.appendChild(modo === 'pend' ? cartaoPendente(p) : cartaoAprovado(p)); });
+  }
+
+  function cartaoPendente(p) {
+    var ret = p.tipo === 'Retirada';
+    var card = el('div', { cls: 'pedido' + (ret ? '' : ' entrada') });
+    cabecalhoPedido(p).forEach(function (n) { if (n) card.appendChild(n); });
+    card.appendChild(el('div', { cls: 'il cab' }, el('div', { txt: 'Material' }), el('div', { cls: 'c', txt: 'Pedido' }), el('div', { cls: 'c', txt: ret ? 'Disponível' : '' }), el('div', { cls: 'c', txt: 'Aprovar' })));
+    var inputs = [];
+    p.itens.forEach(function (i) {
+      var padrao = ret ? Math.min(i.solic, Math.max(0, i.disp)) : i.solic;
+      var inp = el('input', { type: 'number', min: '0', step: '1', inputmode: 'numeric', value: String(padrao), 'aria-label': 'Quantidade a aprovar de ' + i.nome, data: { mid: i.mid } });
+      inputs.push(inp);
+      var linha = el('div', { cls: 'il' },
+        el('div', { cls: 'nome', txt: i.nome }),
+        celula('Pedido', i.solic + ' ' + i.un),
+        ret ? celula('Disponível', Math.max(0, i.disp) + ' ' + i.un) : celula('', ''),
+        el('div', { cls: 'c', data: { l: 'Aprovar' } }, inp));
+      if (ret && i.disp < i.solic) linha.appendChild(el('div', { cls: 'alerta aviso', txt: 'Saldo disponível menor que o pedido. A quantidade foi reduzida para o que há disponível; ajuste se necessário.' }));
+      card.appendChild(linha);
+    });
+    var erro = el('div', { cls: 'erro', role: 'alert' });
+    var aprovar = el('button', { cls: 'prim', type: 'button', txt: 'Aprovar pedido', onclick: function () {
+      var itens = inputs.map(function (x) { return { mid: x.dataset.mid, qtd: Number(x.value) }; });
+      var total = itens.reduce(function (a, b) { return a + (b.qtd || 0); }, 0);
+      if (total <= 0) { erro.textContent = 'Informe a quantidade de pelo menos um item ou recuse o pedido.'; return; }
+      erro.textContent = '';
+      confirmar({ titulo: 'Aprovar ' + p.id + '?', texto: ret ? 'As quantidades ficam reservadas no galpão até você dar a baixa.' : 'As quantidades ficam como "a entrar" até você dar a baixa.', ok: 'Aprovar' }).then(function (r) {
+        if (!r.ok) return;
+        aprovar.disabled = true;
+        chamar('adminAprovar', S.cod, p.id, itens).then(function () { S.estSujo = true; aviso('Pedido ' + p.id + ' aprovado.'); recarregar(); })
+          .catch(function (e) { aprovar.disabled = false; erro.textContent = msg(e); });
+      });
+    } });
+    var recusar = el('button', { cls: 'sec perigo', type: 'button', txt: 'Recusar', onclick: function () {
+      confirmar({ titulo: 'Recusar ' + p.id + '?', texto: 'O pedido será encerrado sem mexer no estoque.', campo: 'Motivo (opcional)', ok: 'Recusar' }).then(function (r) {
+        if (!r.ok) return;
+        chamar('adminRecusar', S.cod, p.id, r.valor).then(function () { aviso('Pedido ' + p.id + ' recusado.'); recarregar(); })
+          .catch(function (e) { erro.textContent = msg(e); });
+      });
+    } });
+    card.appendChild(el('div', { cls: 'acoes' }, aprovar, recusar));
+    card.appendChild(erro);
+    return card;
+  }
+
+  function cartaoAprovado(p) {
+    var ret = p.tipo === 'Retirada';
+    var card = el('div', { cls: 'pedido' + (ret ? '' : ' entrada') });
+    cabecalhoPedido(p).forEach(function (n) { if (n) card.appendChild(n); });
+    card.appendChild(el('div', { cls: 'il cab' }, el('div', { txt: 'Material' }), el('div', { cls: 'c', txt: 'Aprovado' }), el('div', { cls: 'c', txt: ret ? 'No galpão' : '' }), el('div', { cls: 'c', txt: ret ? 'Saiu de fato' : 'Entrou de fato' })));
+    var inputs = [];
+    p.itens.filter(function (i) { return (i.aprov || 0) > 0; }).forEach(function (i) {
+      var inp = el('input', { type: 'number', min: '0', step: '1', inputmode: 'numeric', value: String(i.aprov), 'aria-label': 'Quantidade real de ' + i.nome, data: { mid: i.mid } });
+      var alerta = el('div', { cls: 'alerta', role: 'status' }); alerta.hidden = true;
+      function checar() {
+        var v = Number(inp.value); alerta.hidden = true; alerta.className = 'alerta';
+        if (ret && v > i.fis) { alerta.textContent = 'Maior que o saldo no galpão (' + i.fis + ').'; alerta.hidden = false; }
+        else if (v > i.aprov) { alerta.textContent = 'Acima do aprovado (' + i.aprov + '). Será registrado o valor informado.'; alerta.className = 'alerta aviso'; alerta.hidden = false; }
+      }
+      inp.addEventListener('input', checar);
+      inputs.push(inp);
+      card.appendChild(el('div', { cls: 'il' },
+        el('div', { cls: 'nome', txt: i.nome }),
+        celula('Aprovado', i.aprov + ' ' + i.un),
+        ret ? celula('No galpão', i.fis + ' ' + i.un) : celula('', ''),
+        el('div', { cls: 'c', data: { l: ret ? 'Saiu de fato' : 'Entrou de fato' } }, inp), alerta));
+    });
+    var nota = ret ? null : blocoNota(p, false);
+    if (nota) { card.appendChild(nota.box); nota.miniaturas(); }
+    var data = el('input', { type: 'date', value: S.hoje, max: S.hoje, id: 'dr-' + p.id });
+    var obs = el('input', { type: 'text', maxlength: '200', placeholder: 'Opcional', id: 'ob-' + p.id });
+    var erro = el('div', { cls: 'erro', role: 'alert' });
+    var baixar = el('button', { cls: 'prim', type: 'button', txt: 'Dar baixa', onclick: function () {
+      var itens = inputs.map(function (x) { return { mid: x.dataset.mid, qtd: Number(x.value) }; });
+      var total = itens.reduce(function (a, b) { return a + (b.qtd || 0); }, 0);
+      if (!data.value) { erro.textContent = 'Informe a data real.'; return; }
+      if (total <= 0) { erro.textContent = 'Nenhum item com quantidade maior que zero. Se nada saiu ou entrou, use "Cancelar pedido".'; return; }
+      erro.textContent = '';
+      confirmar({ titulo: 'Dar baixa em ' + p.id + '?', texto: (ret ? 'Será descontado do estoque o que saiu de fato, ' : 'Será somado ao estoque o que entrou de fato, ') + 'com data ' + fmtD(data.value) + '.', ok: 'Dar baixa' }).then(function (r) {
+        if (!r.ok) return;
+        baixar.disabled = true;
+        chamar('adminBaixar', S.cod, p.id, itens, data.value, obs.value, nota ? nota.numero() : '').then(function () { S.estSujo = true; aviso('Baixa registrada em ' + p.id + '.'); recarregar(); })
+          .catch(function (e) { baixar.disabled = false; erro.textContent = msg(e); });
+      });
+    } });
+    var cancelar = el('button', { cls: 'sec perigo', type: 'button', txt: 'Cancelar pedido', onclick: function () {
+      confirmar({ titulo: 'Cancelar ' + p.id + '?', texto: 'A reserva é liberada e nada é lançado no estoque.', campo: 'Motivo (opcional)', ok: 'Cancelar pedido' }).then(function (r) {
+        if (!r.ok) return;
+        chamar('adminCancelar', S.cod, p.id, r.valor).then(function () { S.estSujo = true; aviso('Pedido ' + p.id + ' cancelado.'); recarregar(); })
+          .catch(function (e) { erro.textContent = msg(e); });
+      });
+    } });
+    card.appendChild(el('div', { cls: 'acoes' },
+      el('div', { cls: 'campo' }, el('label', { for: data.id, txt: 'Data real' }), data),
+      el('div', { cls: 'campo' }, el('label', { for: obs.id, txt: 'Observação' }), obs),
+      baixar, cancelar));
+    card.appendChild(erro);
+    return card;
+  }
+
+  // ---------- nota fiscal: número, fotos e PDFs (salvos no Drive) ----------
+  var ARQ = {};   // id do arquivo -> {url, tipo, nome} já baixado para ver
+  var MAX_MB = 10, LADO_MAX = 2000;
+  function limparArquivos() { Object.keys(ARQ).forEach(function (k) { try { URL.revokeObjectURL(ARQ[k].url); } catch (e) { /* nada */ } }); ARQ = {}; }
+  function ehImagem(t) { return /^image\//.test(t || ''); }
+  function baixarArquivo(a) {
+    if (ARQ[a.id]) return Promise.resolve(ARQ[a.id]);
+    return chamar('adminArquivo', S.cod, a.id).then(function (r) {
+      var bin = atob(r.base64), bytes = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      ARQ[a.id] = { url: URL.createObjectURL(new Blob([bytes], { type: r.tipo })), tipo: r.tipo, nome: r.nome };
+      return ARQ[a.id];
+    });
+  }
+  /** Lê o arquivo escolhido. Foto grande é reduzida (lado maior de 2000 px, JPEG) para enviar rápido pelo celular. */
+  function prepararArquivo(file) {
+    return new Promise(function (ok, falha) {
+      var tipo = (file.type || '').toLowerCase();
+      if (!tipo && /\.pdf$/i.test(file.name)) tipo = 'application/pdf';
+      if (!/^(image\/(jpeg|png|webp|heic|heif)|application\/pdf)$/.test(tipo)) { falha(new Error(file.name + ': envie foto ou PDF.')); return; }
+      var leitor = new FileReader();
+      leitor.onerror = function () { falha(new Error('Não foi possível ler ' + file.name + '.')); };
+      leitor.onload = function () {
+        var url = String(leitor.result), base = url.slice(url.indexOf(',') + 1);
+        var reduzivel = /^image\/(jpeg|png|webp)$/.test(tipo);
+        if (!reduzivel) { if (file.size > MAX_MB * 1048576) falha(new Error(file.name + ': maior que ' + MAX_MB + ' MB.')); else ok({ nome: file.name, tipo: tipo, base64: base }); return; }
+        var img = new Image();
+        img.onerror = function () { if (file.size > MAX_MB * 1048576) falha(new Error(file.name + ': maior que ' + MAX_MB + ' MB.')); else ok({ nome: file.name, tipo: tipo, base64: base }); };
+        img.onload = function () {
+          var w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, LADO_MAX / Math.max(w, h));
+          if (k === 1 && file.size <= 1.5 * 1048576) { ok({ nome: file.name, tipo: tipo, base64: base }); return; }
+          var cv = document.createElement('canvas'); cv.width = Math.round(w * k); cv.height = Math.round(h * k);
+          var cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(img, 0, 0, cv.width, cv.height);
+          var jpg = cv.toDataURL('image/jpeg', 0.82);
+          ok({ nome: file.name.replace(/\.[^.]*$/, '') + '.jpg', tipo: 'image/jpeg', base64: jpg.slice(jpg.indexOf(',') + 1) });
+        };
+        img.src = url;
+      };
+      leitor.readAsDataURL(file);
+    });
+  }
+  /**
+   * Bloco da nota fiscal de uma entrada. noHistorico = true mostra o botão para salvar o número;
+   * na baixa, o número vai junto com a baixa. Os arquivos são enviados na hora em que são escolhidos.
+   */
+  function blocoNota(p, noHistorico) {
+    p.anexos = p.anexos || [];
+    var box = el('div', { cls: 'nf' });
+    var num = el('input', { type: 'text', maxlength: '60', id: 'nf-' + p.id, value: p.notaFiscal || '', placeholder: 'Ex.: 000123', autocomplete: 'off', inputmode: 'text' });
+    var salvar = noHistorico ? el('button', { cls: 'sec', type: 'button', txt: 'Salvar número', onclick: function () {
+      salvar.disabled = true;
+      chamar('adminNotaFiscal', S.cod, p.id, num.value).then(function (r) { p.notaFiscal = r.notaFiscal; aviso('Nota fiscal de ' + p.id + ' salva.'); })
+        .catch(function (e) { estado.textContent = msg(e); }).then(function () { salvar.disabled = false; });
+    } }) : null;
+    var grade = el('div', { cls: 'nf-arqs' });
+    var estado = el('div', { cls: 'estado', role: 'status' });
+    var foto = el('input', { type: 'file', accept: 'image' + '/' + '*', capture: 'environment', id: 'nf-foto-' + p.id });
+    var arquivo = el('input', { type: 'file', accept: 'image' + '/' + '*,application' + '/' + 'pdf', multiple: 'multiple', id: 'nf-arq-' + p.id });
+    function enviar(lista) {
+      lista = Array.prototype.slice.call(lista || []); if (!lista.length) return;
+      foto.disabled = arquivo.disabled = true;
+      var feitos = 0, erros = [];
+      (function proximo() {
+        if (!lista.length) {
+          foto.disabled = arquivo.disabled = false; foto.value = ''; arquivo.value = '';
+          estado.textContent = erros.length ? erros.join(' ') : '';
+          if (feitos) aviso(feitos + ' arquivo(s) salvo(s) no Drive.');
+          return;
+        }
+        var file = lista.shift();
+        estado.textContent = 'Enviando ' + file.name + '...';
+        prepararArquivo(file).then(function (a) { return chamar('adminAnexar', S.cod, p.id, a.nome, a.tipo, a.base64); })
+          .then(function (dto) { p.anexos.push(dto); feitos++; desenhar(); })
+          .catch(function (e) { erros.push(msg(e)); })
+          .then(proximo);
+      })();
+    }
+    foto.addEventListener('change', function () { enviar(foto.files); });
+    arquivo.addEventListener('change', function () { enviar(arquivo.files); });
+    function miniatura(a, alvo) {
+      if (!ehImagem(a.tipo) || /hei[cf]$/.test(a.tipo)) return;
+      baixarArquivo(a).then(function (x) { alvo.innerHTML = ''; alvo.appendChild(el('img', { src: x.url, alt: a.nome, loading: 'lazy' })); }).catch(function () { /* fica o ícone */ });
+    }
+    var carregou = false;
+    function desenhar() {
+      grade.innerHTML = '';
+      if (!p.anexos.length) { grade.appendChild(el('div', { cls: 'nota', style: 'grid-column:1/-1;margin:0', txt: 'Nenhum arquivo ainda. Tire uma foto da nota ou anexe o PDF.' })); return; }
+      p.anexos.forEach(function (a, i) {
+        var mini = el('button', { cls: 'mini', type: 'button', title: 'Ver ' + a.nome, 'aria-label': 'Ver ' + a.nome, onclick: function () { abrirVisor(p.anexos, i); } },
+          ic(ehImagem(a.tipo) ? 'image' : 'file-text', 'h-8 w-8'));
+        var tirar = el('button', { cls: 'tirar', type: 'button', title: 'Remover', 'aria-label': 'Remover ' + a.nome, onclick: function () {
+          confirmar({ titulo: 'Remover este arquivo?', texto: a.nome + '\nEle vai para a lixeira do Drive (dá para recuperar por 30 dias).', ok: 'Remover' }).then(function (r) {
+            if (!r.ok) return;
+            chamar('adminRemoverAnexo', S.cod, p.id, a.id).then(function () { p.anexos = p.anexos.filter(function (x) { return x.id !== a.id; }); desenhar(); aviso('Arquivo removido.'); })
+              .catch(function (e) { aviso(msg(e), true); });
+          });
+        } }, ic('x', 'h-4 w-4'));
+        grade.appendChild(el('div', { cls: 'arq' }, mini, tirar, el('div', { cls: 'rot', txt: (ehImagem(a.tipo) ? 'Foto ' : 'PDF ') + (i + 1) })));
+        if (carregou) miniatura(a, mini);
+      });
+    }
+    box.appendChild(el('div', { cls: 'nf-cab' }, ic('receipt-text', 'h-4 w-4 text-emerald-700'), 'Nota fiscal do recebimento'));
+    box.appendChild(el('div', { cls: 'nf-num' }, el('div', { cls: 'campo' }, el('label', { for: num.id, txt: 'Número da nota fiscal' + (noHistorico ? '' : ' (opcional)') }), num), salvar));
+    box.appendChild(grade);
+    box.appendChild(el('div', { cls: 'nf-acoes' },
+      el('label', { cls: 'botao', for: foto.id }, ic('camera', 'h-4 w-4'), 'Tirar foto', foto),
+      el('label', { cls: 'botao', for: arquivo.id }, ic('paperclip', 'h-4 w-4'), 'Anexar arquivo', arquivo)));
+    box.appendChild(estado);
+    desenhar();
+    return {
+      box: box,
+      numero: function () { return num.value; },
+      miniaturas: function () { if (carregou) return; carregou = true; desenhar(); }
+    };
+  }
+
+  // ---------- visualizador de fotos e PDFs ----------
+  var VIS = { lista: [], i: 0 };
+  function abrirVisor(lista, i) { VIS.lista = lista; VIS.i = i; $('visor').hidden = false; document.body.style.overflow = 'hidden'; mostrarNoVisor(); $('v-fechar').focus(); }
+  function fecharVisor() { $('visor').hidden = true; $('v-corpo').innerHTML = ''; document.body.style.overflow = ''; }
+  function mostrarNoVisor() {
+    var a = VIS.lista[VIS.i], corpo = $('v-corpo'); if (!a) { fecharVisor(); return; }
+    $('v-nome').textContent = a.nome; $('v-pos').textContent = (VIS.i + 1) + ' de ' + VIS.lista.length;
+    $('v-ant').disabled = VIS.i === 0; $('v-prox').disabled = VIS.i >= VIS.lista.length - 1;
+    $('v-baixar').removeAttribute('href');
+    corpo.innerHTML = ''; corpo.appendChild(el('div', { cls: 'aviso-v', txt: 'Carregando...' }));
+    var pedido = VIS.i;
+    baixarArquivo(a).then(function (x) {
+      if (pedido !== VIS.i || $('visor').hidden) return;
+      corpo.innerHTML = '';
+      $('v-baixar').href = x.url; $('v-baixar').setAttribute('download', a.nome);
+      if (ehImagem(x.tipo) && !/hei[cf]$/.test(x.tipo)) corpo.appendChild(el('img', { src: x.url, alt: a.nome }));
+      else if (x.tipo === 'application/pdf') {
+        corpo.appendChild(el('iframe', { src: x.url, title: a.nome }));
+      } else corpo.appendChild(el('div', { cls: 'aviso-v', txt: 'Este formato não abre aqui. Use o botão de baixar, no alto.' }));
+    }).catch(function (e) { corpo.innerHTML = ''; corpo.appendChild(el('div', { cls: 'aviso-v', txt: msg(e) })); });
+  }
+  $('v-fechar').addEventListener('click', fecharVisor);
+  $('v-ant').addEventListener('click', function () { if (VIS.i > 0) { VIS.i--; mostrarNoVisor(); } });
+  $('v-prox').addEventListener('click', function () { if (VIS.i < VIS.lista.length - 1) { VIS.i++; mostrarNoVisor(); } });
+  document.addEventListener('keydown', function (e) {
+    if ($('visor').hidden) return;
+    if (e.key === 'Escape') fecharVisor(); else if (e.key === 'ArrowLeft') $('v-ant').click(); else if (e.key === 'ArrowRight') $('v-prox').click();
+  });
+
+  // ---------- obras e fornecedores ----------
+  function cnpjLimpo(v) { return String(v || '').toUpperCase().replace(/[^0-9A-Z]/g, ''); }
+  function cnpjMascara(v) {
+    v = cnpjLimpo(v).slice(0, 14);
+    var p = [v.slice(0, 2), v.slice(2, 5), v.slice(5, 8), v.slice(8, 12), v.slice(12, 14)];
+    return p[0] + (p[1] ? '.' + p[1] : '') + (p[2] ? '.' + p[2] : '') + (p[3] ? '/' + p[3] : '') + (p[4] ? '-' + p[4] : '');
+  }
+  function campoCnpj(id, valor) {
+    var i = el('input', { type: 'text', id: id, maxlength: '18', autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', placeholder: '00.000.000/0000-00', value: valor || '' });
+    i.addEventListener('input', function () { i.value = cnpjMascara(i.value); });
+    return i;
+  }
+  function carregarCadastros() {
+    var box = $('aba-cad'); box.innerHTML = ''; box.appendChild(el('div', { cls: 'vazio', txt: 'Carregando...' }));
+    chamar('adminCadastros', S.cod).then(function (r) { S.cad = r; desenharCadastros(); })
+      .catch(function (e) { box.innerHTML = ''; box.appendChild(el('div', { cls: 'vazio erro', txt: msg(e) })); });
+  }
+  function desenharCadastros() {
+    var box = $('aba-cad'); box.innerHTML = '';
+    var busca = el('input', { type: 'search', id: 'cad-busca', placeholder: 'Buscar obra, fornecedor ou CNPJ', 'aria-label': 'Buscar obra, fornecedor ou CNPJ', value: S.filtroCad.q });
+    box.appendChild(el('div', { cls: 'barra' }, busca));
+    // ---- obras
+    var nomeObra = el('input', { type: 'text', id: 'cad-obra', maxlength: '100', autocomplete: 'off', placeholder: 'Ex.: Residencial Mar Azul' });
+    var erroO = el('div', { cls: 'erro', role: 'alert' });
+    var okO = el('button', { cls: 'prim', type: 'button', txt: 'Cadastrar obra', onclick: function () {
+      okO.disabled = true; erroO.textContent = '';
+      chamar('adminNovaObra', S.cod, nomeObra.value).then(function (r) { aviso('Obra ' + r.obra + ' cadastrada.'); S.histSujo = true; carregarCadastros(); })
+        .catch(function (e) { okO.disabled = false; erroO.textContent = msg(e); });
+    } });
+    var listaO = el('div'), listaF = el('div'), infoO = el('div', { cls: 'nota' }), infoF = el('div', { cls: 'nota' });
+    box.appendChild(el('section', { cls: 'cad-sec' },
+      el('h2', null, ic('building-2', 'h-5 w-5 text-brand-700'), 'Obras'),
+      el('div', { cls: 'novo' }, el('div', { cls: 'grade2' }, el('div', null, el('label', { for: 'cad-obra', txt: 'Nome da obra nova' }), nomeObra)), el('div', { cls: 'acoes' }, okO), erroO),
+      infoO, listaO));
+    // ---- fornecedores
+    var nomeF = el('input', { type: 'text', id: 'cad-forn', maxlength: '100', autocomplete: 'off', placeholder: 'Ex.: Casa do Construtor Ltda' });
+    var cnpjF = campoCnpj('cad-cnpj');
+    var erroF = el('div', { cls: 'erro', role: 'alert' });
+    var okF = el('button', { cls: 'prim', type: 'button', txt: 'Cadastrar fornecedor', onclick: function () {
+      okF.disabled = true; erroF.textContent = '';
+      chamar('adminNovoFornecedor', S.cod, nomeF.value, cnpjF.value).then(function (r) { aviso('Fornecedor ' + r.fornecedor.nome + ' cadastrado.'); carregarCadastros(); })
+        .catch(function (e) { okF.disabled = false; erroF.textContent = msg(e); });
+    } });
+    box.appendChild(el('section', { cls: 'cad-sec' },
+      el('h2', null, ic('truck', 'h-5 w-5 text-brand-700'), 'Fornecedores'),
+      el('div', { cls: 'novo' }, el('div', { cls: 'grade2' },
+        el('div', null, el('label', { for: 'cad-forn', txt: 'Nome do fornecedor' }), nomeF),
+        el('div', null, el('label', { for: 'cad-cnpj', txt: 'CNPJ (aceita o formato novo, com letras)' }), cnpjF)), el('div', { cls: 'acoes' }, okF), erroF),
+      infoF, listaF));
+    function pinta() {
+      var termos = semAcento(S.filtroCad.q).split(/\s+/).filter(Boolean);
+      var bate = function (txt) { var k = semAcento(txt); return termos.every(function (t) { return k.indexOf(t) >= 0; }); };
+      var obras = S.cad.obras.filter(function (o) { return bate(o.nome); });
+      var forns = S.cad.fornecedores.filter(function (f) { return bate(f.nome + ' ' + f.cnpj + ' ' + cnpjLimpo(f.cnpj)); });
+      listaO.innerHTML = ''; listaF.innerHTML = '';
+      obras.forEach(function (o) { listaO.appendChild(linhaObra(o)); });
+      forns.forEach(function (f) { listaF.appendChild(linhaFornecedor(f)); });
+      if (!obras.length) listaO.appendChild(el('div', { cls: 'vazio', txt: S.cad.obras.length ? 'Nenhuma obra encontrada.' : 'Nenhuma obra cadastrada.' }));
+      if (!forns.length) listaF.appendChild(el('div', { cls: 'vazio', txt: S.cad.fornecedores.length ? 'Nenhum fornecedor encontrado.' : 'Nenhum fornecedor cadastrado ainda.' }));
+      infoO.textContent = S.cad.obras.length + ' obra(s), ' + S.cad.obras.filter(function (o) { return o.ativa; }).length + ' ativa(s).';
+      infoF.textContent = S.cad.fornecedores.length + ' fornecedor(es), ' + S.cad.fornecedores.filter(function (f) { return f.ativo; }).length + ' ativo(s).';
+    }
+    var t = null;
+    busca.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { S.filtroCad.q = busca.value; pinta(); }, 180); });
+    pinta();
+  }
+  function quemCadastrou(por, em) { return (por || em) ? 'Cadastrado' + (por ? ' por ' + por : '') + (em ? ' em ' + fmtDT(em) : '') : 'Cadastrado direto na planilha'; }
+  function botaoAtivo(ativo, nome, texto, acao) {
+    return el('button', { cls: 'sec' + (ativo ? ' perigo' : ''), type: 'button', onclick: function () {
+      confirmar({ titulo: (ativo ? 'Desativar ' : 'Reativar ') + nome + '?', texto: texto, ok: ativo ? 'Desativar' : 'Reativar' }).then(function (r) {
+        if (!r.ok) return;
+        acao().then(function () { aviso(nome + (ativo ? ' desativado.' : ' reativado.')); carregarCadastros(); }).catch(function (e) { aviso(msg(e), true); });
+      });
+    } }, ic(ativo ? 'eye-off' : 'rotate-ccw', 'h-4 w-4'), ativo ? 'Desativar' : 'Reativar');
+  }
+  function linhaObra(o) {
+    var card = el('div', { cls: 'adm' });
+    card.appendChild(el('div', { cls: 'nome', txt: o.nome }));
+    card.appendChild(el('span', { cls: 'chip ' + (o.ativa ? 'ok' : 'off'), txt: o.ativa ? 'Ativa' : 'Desativada' }));
+    card.appendChild(el('div', { cls: 'nota', style: 'flex:1 1 100%;margin:0', txt: o.pedidos + ' pedido(s) · ' + quemCadastrou(o.criadaPor, o.criadaEm).replace('Cadastrado', 'Cadastrada') }));
+    card.appendChild(el('div', { cls: 'acoes' }, botaoAtivo(o.ativa, o.nome, o.ativa ? 'Ela deixa de aparecer na lista da equipe da obra. Os pedidos antigos continuam guardados.' : 'Ela volta a aparecer na lista da equipe da obra.',
+      function () { return chamar('adminSetObraAtiva', S.cod, o.nome, !o.ativa); })));
+    return card;
+  }
+  function linhaFornecedor(f) {
+    var card = el('div', { cls: 'adm' });
+    card.appendChild(el('div', { cls: 'nome', txt: f.nome }));
+    card.appendChild(el('span', { cls: 'chip ' + (f.ativo ? 'ok' : 'off'), txt: f.ativo ? 'Ativo' : 'Desativado' }));
+    card.appendChild(el('div', { cls: 'nota', style: 'flex:1 1 100%;margin:0' }, el('span', { cls: 'cnpj', txt: 'CNPJ ' + f.cnpj }), ' · ' + f.pedidos + ' pedido(s) · ' + quemCadastrou(f.criadoPor, f.criadoEm)));
+    var form = el('div', { cls: 'troca' }); form.hidden = true;
+    var nome = el('input', { type: 'text', id: 'ed-n-' + f.id, maxlength: '100', value: f.nome });
+    var cnpj = campoCnpj('ed-c-' + f.id, f.cnpj);
+    var erro = el('div', { cls: 'erro', role: 'alert' });
+    var salvar = el('button', { cls: 'prim', type: 'button', txt: 'Salvar', onclick: function () {
+      salvar.disabled = true; erro.textContent = '';
+      chamar('adminEditarFornecedor', S.cod, f.id, nome.value, cnpj.value).then(function () { aviso('Fornecedor atualizado.'); carregarCadastros(); })
+        .catch(function (e) { salvar.disabled = false; erro.textContent = msg(e); });
+    } });
+    form.appendChild(el('div', { cls: 'grade2' }, el('div', null, el('label', { for: nome.id, txt: 'Nome' }), nome), el('div', null, el('label', { for: cnpj.id, txt: 'CNPJ' }), cnpj)));
+    form.appendChild(el('p', { cls: 'nota', txt: 'Os pedidos já feitos continuam com o nome e o CNPJ da época.' }));
+    form.appendChild(el('div', { cls: 'acoes' }, salvar)); form.appendChild(erro);
+    card.appendChild(el('div', { cls: 'acoes' },
+      el('button', { cls: 'sec', type: 'button', onclick: function () { form.hidden = !form.hidden; if (!form.hidden) nome.focus(); } }, ic('pencil', 'h-4 w-4'), 'Editar'),
+      botaoAtivo(f.ativo, f.nome, f.ativo ? 'Ele deixa de aparecer na lista da equipe da obra. Os pedidos antigos continuam guardados.' : 'Ele volta a aparecer na lista da equipe da obra.',
+        function () { return chamar('adminSetFornecedorAtivo', S.cod, f.id, !f.ativo); })));
+    card.appendChild(form);
+    return card;
+  }
+
+  // ---------- histórico ----------
+  var seqH = 0, timerH = null, montouH = false;
+  function opcao(v, t) { return el('option', { value: v, txt: t }); }
+  function montarFiltrosHist() {
+    var box = $('aba-hist'); box.innerHTML = ''; montouH = true;
+    var f = S.fh;
+    var tipo = el('select', { id: 'h-tipo', 'aria-label': 'Tipo' }, opcao('', 'Todos os tipos'), opcao('Retirada', 'Retirada'), opcao('Entrada', 'Entrada'), opcao('Ajuste', 'Ajuste de saldo'));
+    var status = el('select', { id: 'h-status', 'aria-label': 'Situação' }, opcao('', 'Todas'), opcao('Concluído', 'Concluído'), opcao('Recusado', 'Recusado'), opcao('Cancelado', 'Cancelado'));
+    var obra = el('select', { id: 'h-obra', 'aria-label': 'Obra ou fornecedor' }, opcao('', 'Todas'));
+    var de = el('input', { type: 'date', id: 'h-de' }), ate = el('input', { type: 'date', id: 'h-ate' });
+    var q = el('input', { type: 'search', id: 'h-q', placeholder: 'Pedido, material, pessoa, NF, CNPJ ou motivo', maxlength: '80', autocomplete: 'off' });
+    var limpar = el('button', { cls: 'sec', type: 'button', txt: 'Limpar filtros', onclick: function () {
+      S.fh = { tipo: '', status: '', obra: '', de: '', ate: '', q: '', limite: 100 };
+      tipo.value = status.value = obra.value = de.value = ate.value = q.value = ''; sincronizar(); buscarHistorico();
+    } });
+    function sincronizar() {
+      var aj = tipo.value === 'Ajuste';
+      status.disabled = aj; obra.disabled = aj; if (aj) { status.value = ''; obra.value = ''; }
+    }
+    function mudou(imediato) {
+      S.fh.tipo = tipo.value; S.fh.status = status.value; S.fh.obra = obra.value; S.fh.de = de.value; S.fh.ate = ate.value; S.fh.q = q.value; S.fh.limite = 100;
+      sincronizar(); clearTimeout(timerH);
+      if (imediato) buscarHistorico(); else timerH = setTimeout(buscarHistorico, 350);
+    }
+    [tipo, status, obra, de, ate].forEach(function (x) { x.addEventListener('change', function () { mudou(true); }); });
+    q.addEventListener('input', function () { mudou(false); });
+    box.appendChild(el('div', { cls: 'filtros' },
+      el('div', { cls: 'grade' },
+        el('div', null, el('label', { for: 'h-tipo', txt: 'Tipo' }), tipo),
+        el('div', null, el('label', { for: 'h-status', txt: 'Situação' }), status),
+        el('div', null, el('label', { for: 'h-obra', txt: 'Obra ou fornecedor' }), obra),
+        el('div', null, el('label', { for: 'h-de', txt: 'De (data)' }), de),
+        el('div', null, el('label', { for: 'h-ate', txt: 'Até (data)' }), ate)),
+      el('label', { for: 'h-q', txt: 'Buscar' }), q,
+      el('div', { cls: 'linha' }, el('div', { cls: 'nota', id: 'h-info', role: 'status' }), limpar),
+      el('div', { cls: 'nota', txt: 'A data considera o dia real da saída/entrada (ou o programado, se não foi realizado). Ajustes de saldo não têm obra nem situação, por isso saem da lista ao filtrar por elas.' })));
+    box.appendChild(el('div', { id: 'h-lista' }));
+    box.appendChild(el('button', { cls: 'sec', id: 'h-mais', type: 'button', txt: 'Mostrar mais', style: 'width:100%', hidden: 'hidden', onclick: function () { S.fh.limite += 100; buscarHistorico(); } }));
+  }
+  function carregarHistorico() {
+    if (!montouH) montarFiltrosHist();
+    if (S.hres && !S.histSujo) return;
+    buscarHistorico();
+  }
+  function buscarHistorico() {
+    var meu = ++seqH;
+    $('h-info').textContent = 'Carregando...';
+    chamar('adminHistorico', S.cod, S.fh).then(function (r) {
+      if (meu !== seqH) return;
+      S.hres = r; S.histSujo = false; atualizarObrasHist(r.obras); desenharHistorico();
+    }).catch(function (e) {
+      if (meu !== seqH) return;
+      $('h-info').textContent = ''; $('h-mais').hidden = true;
+      var l = $('h-lista'); l.innerHTML = ''; l.appendChild(el('div', { cls: 'vazio erro', txt: msg(e) }));
+    });
+  }
+  function atualizarObrasHist(obras) {
+    var sel = $('h-obra'), atual = S.fh.obra;
+    if (sel.options.length === obras.length + 1) return;
+    sel.innerHTML = ''; sel.appendChild(opcao('', 'Todas as obras'));
+    obras.forEach(function (o) { sel.appendChild(opcao(o, o)); });
+    sel.value = atual;
+  }
+  function desenharHistorico() {
+    var r = S.hres, l = $('h-lista'); l.innerHTML = '';
+    $('h-info').textContent = r.total === 0 ? 'Nenhum resultado.' : (r.total + (r.total === 1 ? ' resultado' : ' resultados') + (r.itens.length < r.total ? ' (mostrando os ' + r.itens.length + ' mais recentes)' : ''));
+    $('h-mais').hidden = r.itens.length >= r.total;
+    if (!r.itens.length) { l.appendChild(el('div', { cls: 'vazio', txt: 'Nada encontrado com esses filtros.' })); return; }
+    r.itens.forEach(function (p) { l.appendChild(p.kind === 'ajuste' ? cartaoAjuste(p) : cartaoHistorico(p)); });
+  }
+  function cartaoAjuste(a) {
+    var sinal = a.delta > 0 ? '+' : '';
+    return el('div', { cls: 'aj' },
+      el('div', { cls: 'topo' }, el('span', { cls: 'tipo ajuste' }, ic('sliders-horizontal', 'h-3.5 w-3.5'), 'Ajuste de saldo'), el('b', { txt: a.material })),
+      el('div', { cls: 'mov' + (a.delta < 0 ? ' neg' : ''), txt: a.antes + ' → ' + a.depois + ' ' + a.un + '  (' + sinal + a.delta + ')' }),
+      el('div', { txt: 'Motivo: ' + (a.motivo || '—') }),
+      el('div', { cls: 'quem2', txt: 'Ajustado por ' + (a.por || '(não informado)') + ' · ' + fmtDT(a.quando) }));
+  }
+  function cartaoHistorico(p) {
+    var ret = p.tipo === 'Retirada';
+    var d = el('details', { cls: 'hist' });
+    d.appendChild(el('summary', null,
+      el('span', { cls: 'tipo' + (ret ? '' : ' ent') }, ic(ret ? 'package-minus' : 'package-plus', 'h-3.5 w-3.5'), p.tipo), el('b', { txt: p.id }),
+      el('span', { txt: p.local }), !ret && p.anexos && p.anexos.length ? el('span', { cls: 'chip', title: 'Arquivos da nota fiscal' }, ic('paperclip', 'mr-1 h-3 w-3'), String(p.anexos.length)) : null,
+      el('span', { cls: 'muted', txt: p.dataReal ? 'realizado em ' + fmtD(p.dataReal) : 'programado para ' + fmtD(p.dataProg) }),
+      el('span', { cls: 'chip ' + (p.status === 'Concluído' ? 'ok' : 'rec'), txt: p.status })));
+    var corpo = el('div', { cls: 'corpo' });
+    cabecalhoPedido(p).slice(1).forEach(function (n) { if (n) corpo.appendChild(n); });
+    corpo.appendChild(el('div', { cls: 'il cab' }, el('div', { txt: 'Material' }), el('div', { cls: 'c', txt: 'Pedido' }), el('div', { cls: 'c', txt: 'Aprovado' }), el('div', { cls: 'c', txt: 'Real' })));
+    p.itens.forEach(function (i) {
+      corpo.appendChild(el('div', { cls: 'il' }, el('div', { cls: 'nome', txt: i.nome }),
+        celula('Pedido', i.solic + ' ' + i.un), celula('Aprovado', i.aprov === null ? '—' : i.aprov + ' ' + i.un), celula('Real', i.real === null ? '—' : i.real + ' ' + i.un)));
+    });
+    if (!ret && p.status === 'Concluído') {
+      var nf = blocoNota(p, true); corpo.appendChild(nf.box);
+      d.addEventListener('toggle', function () { if (d.open) nf.miniaturas(); });
+    }
+    d.appendChild(corpo); return d;
+  }
+
+  // ---------- relatórios ----------
+  var MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  var montouR = false;
+  function carregarRelatorios() { if (!montouR) montarRelatorios(); }
+  var TIPOS_POSICAO = { Disponivel: 1, AChegar: 1, ARetirar: 1 };
+  var NOTAS_REL = {
+    Retirada: 'Só entram os lançamentos já confirmados na baixa, com a quantidade e a data reais. Pedidos pendentes ou aprovados sem baixa não aparecem.',
+    Entrada: 'Só entram os lançamentos já confirmados na baixa, com a quantidade e a data reais. Pedidos pendentes ou aprovados sem baixa não aparecem.',
+    Disponivel: 'Mostra a situação de agora: o que está no galpão menos o que já foi reservado em retiradas aprovadas. Materiais com todo o saldo reservado não aparecem.',
+    AChegar: 'Entradas aprovadas que ainda não receberam baixa: o material ainda não chegou ao galpão. Datas vencidas aparecem em vermelho.',
+    ARetirar: 'Retiradas aprovadas que ainda não receberam baixa: o material ainda está no galpão, mas já reservado. Datas vencidas aparecem em vermelho.'
+  };
+  function montarRelatorios() {
+    var box = $('aba-rel'); box.innerHTML = ''; montouR = true;
+    var hj = S.hoje.split('-');
+    var tipo = el('select', { id: 'r-tipo' },
+      el('optgroup', { label: 'O que já aconteceu (baixas)' }, opcao('Retirada', 'Retiradas (saídas do galpão)'), opcao('Entrada', 'Entradas (recebidos no galpão)')),
+      el('optgroup', { label: 'Situação de agora' }, opcao('Disponivel', 'Estoque disponível'), opcao('AChegar', 'Materiais a chegar'), opcao('ARetirar', 'Programados para retirada')));
+    var agr = el('select', { id: 'r-agr' });
+    var modo = el('select', { id: 'r-modo' });
+    var mes = el('select', { id: 'r-mes' }); MESES.forEach(function (n, i) { mes.appendChild(opcao(String(i + 1), n)); }); mes.value = String(Number(hj[1]));
+    var ano = el('input', { type: 'number', id: 'r-ano', min: '2020', max: '2100', step: '1', inputmode: 'numeric', value: hj[0] });
+    var de = el('input', { type: 'date', id: 'r-de' }), ate = el('input', { type: 'date', id: 'r-ate' });
+    var obra = el('select', { id: 'r-obra' }, opcao('', 'Todas as obras e fornecedores')); S.obras.forEach(function (o) { obra.appendChild(opcao(o, o)); });
+    var cat = el('select', { id: 'r-cat' }, opcao('', 'Todas as categorias'));
+    var chkPend = el('input', { type: 'checkbox', id: 'r-pend' });
+    var blocoMes = el('div', { cls: 'grade', style: 'grid-column:1/-1' },
+      el('div', null, el('label', { for: 'r-mes', txt: 'Mês' }), mes), el('div', null, el('label', { for: 'r-ano', txt: 'Ano' }), ano));
+    var blocoInt = el('div', { cls: 'grade', style: 'grid-column:1/-1' },
+      el('div', null, el('label', { for: 'r-de', txt: 'De (data)' }), de), el('div', null, el('label', { for: 'r-ate', txt: 'Até (data)' }), ate));
+    var cObra = el('div', null, el('label', { for: 'r-obra', txt: 'Obra ou fornecedor' }), obra);
+    var cCat = el('div', null, el('label', { for: 'r-cat', txt: 'Categoria' }), cat);
+    var cModo = el('div', null, el('label', { for: 'r-modo', txt: 'Período' }), modo);
+    var cPend = el('div', { style: 'grid-column:1/-1' }, el('label', { cls: 'mostrar', for: 'r-pend' }, chkPend, 'Incluir também os pedidos que ainda não foram aprovados'));
+    var nota = el('div', { cls: 'nota' });
+    var erro = el('div', { cls: 'erro', role: 'alert' });
+    var catsCarregadas = false;
+
+    function opcoes(sel, lista, manter) { var v = sel.value; sel.innerHTML = ''; lista.forEach(function (p) { sel.appendChild(opcao(p[0], p[1])); }); if (manter && lista.some(function (p) { return p[0] === v; })) sel.value = v; }
+    var tipoAnt = '', posAnt = null;
+    function ajustar() {
+      var t = tipo.value, pos = !!TIPOS_POSICAO[t], disp = t === 'Disponivel';
+      opcoes(agr, disp ? [['lista', 'Em ordem alfabética'], ['categoria', 'Agrupado por categoria']] : [['data', 'Em ordem de data'], ['obra', 'Agrupado por obra']], tipoAnt === 'Disponivel' === disp);
+      opcoes(modo, pos ? [['todos', 'Todas as datas programadas'], ['mes', 'Um mês'], ['int', 'Intervalo de datas']] : [['mes', 'Um mês'], ['int', 'Intervalo de datas']], posAnt === pos);
+      tipoAnt = t; posAnt = pos;
+      cObra.hidden = disp; cCat.hidden = !disp; cModo.hidden = disp; cPend.hidden = disp || !pos;
+      blocoMes.hidden = disp || modo.value !== 'mes'; blocoInt.hidden = disp || modo.value !== 'int';
+      nota.textContent = NOTAS_REL[t]; erro.textContent = '';
+      if (disp && !catsCarregadas) {
+        catsCarregadas = true;
+        var pronto = function (lista) { var set = {}; lista.forEach(function (m) { set[m.c] = 1; }); Object.keys(set).sort(function (x, y) { return x.localeCompare(y, 'pt-BR'); }).forEach(function (c) { cat.appendChild(opcao(c, c)); }); };
+        if (S.est) pronto(S.est); else chamar('adminEstoque', S.cod).then(function (l) { S.est = l; S.estSujo = false; pronto(l); }).catch(function () { catsCarregadas = false; });
+      }
+    }
+    tipo.addEventListener('change', ajustar);
+    modo.addEventListener('change', function () { blocoMes.hidden = modo.value !== 'mes'; blocoInt.hidden = modo.value !== 'int'; });
+    var gerar = el('button', { cls: 'prim', type: 'button', id: 'r-gerar', txt: 'Gerar relatório', onclick: function () {
+      var t = tipo.value, pos = !!TIPOS_POSICAO[t], f = { tipo: t, agrupar: agr.value };
+      if (t === 'Disponivel') { f.categoria = cat.value; }
+      else {
+        f.obra = obra.value;
+        if (pos) f.pendentes = chkPend.checked;
+        if (modo.value === 'mes') {
+          var y = Number(ano.value), m = Number(mes.value);
+          if (!(y >= 2000 && y <= 2100)) { erro.textContent = 'Informe um ano válido.'; return; }
+          f.de = y + '-' + ('0' + m).slice(-2) + '-01'; f.ate = y + '-' + ('0' + m).slice(-2) + '-' + ('0' + new Date(y, m, 0).getDate()).slice(-2);
+        } else if (modo.value === 'int') {
+          if (!de.value || !ate.value) { erro.textContent = 'Informe as duas datas.'; return; }
+          f.de = de.value; f.ate = ate.value;
+        }
+      }
+      erro.textContent = ''; gerar.disabled = true; gerar.textContent = 'Gerando...';
+      chamar('adminRelatorio', S.cod, f).then(function (r) { S.rel = { dados: r, filtro: f }; desenharRelatorio(); })
+        .catch(function (e) { erro.textContent = msg(e); })
+        .then(function () { gerar.disabled = false; gerar.textContent = 'Gerar relatório'; });
+    } });
+    box.appendChild(el('div', { cls: 'rel-controles' },
+      el('div', { cls: 'grade' },
+        el('div', null, el('label', { for: 'r-tipo', txt: 'Relatório de' }), tipo),
+        el('div', null, el('label', { for: 'r-agr', txt: 'Organizar' }), agr),
+        cObra, cCat, cModo),
+      blocoMes, blocoInt, cPend,
+      el('div', { cls: 'acoes' }, gerar), erro, nota));
+    box.appendChild(el('div', { id: 'r-res' }));
+    ajustar();
+  }
+  function tabelaRel(linhas, mostrarObra, ret) {
+    var cab = ['Data', 'Pedido', 'Material', 'Quantidade', 'Solicitante'].concat(mostrarObra ? [ret ? 'Obra de destino' : 'Origem'] : [], ret ? [] : ['Nota fiscal'], ['Baixa por']);
+    var tr = el('tr'); cab.forEach(function (c) { tr.appendChild(el('th', { txt: c })); });
+    var tb = el('tbody');
+    linhas.forEach(function (l) {
+      var r = el('tr', null, el('td', { txt: fmtD(l.data) }), el('td', { txt: l.pedido }), el('td', { txt: l.material }), el('td', { cls: 'n', txt: l.qtd + ' ' + l.un }), el('td', { txt: l.solicitante }));
+      if (mostrarObra) r.appendChild(el('td', null, l.obra, l.cnpj ? el('div', { cls: 'cnpj', txt: 'CNPJ ' + l.cnpj }) : null));
+      if (!ret) r.appendChild(el('td', { txt: l.nf || '—' }));
+      r.appendChild(el('td', { txt: l.baixaPor })); tb.appendChild(r);
+    });
+    return el('div', { cls: 'tabela-wrap' }, el('table', { cls: 'rel' }, el('thead', null, tr), tb));
+  }
+  function tabelaProg(linhas, mostrarObra, ent) {
+    var cab = [ent ? 'Chegada prevista' : 'Retirada programada', 'Pedido', 'Material', 'Quantidade', 'Solicitante'].concat(mostrarObra ? [ent ? 'Origem' : 'Obra de destino'] : [], ['Situação']);
+    var tr = el('tr'); cab.forEach(function (c) { tr.appendChild(el('th', { txt: c })); });
+    var tb = el('tbody');
+    linhas.forEach(function (l) {
+      var pend = l.status === 'Pendente';
+      var r = el('tr', null, el('td', { cls: l.atrasado ? 'atrasado' : '', txt: fmtD(l.data) + (l.atrasado ? ' (atrasado)' : '') }), el('td', { txt: l.pedido }), el('td', { txt: l.material }),
+        el('td', { cls: 'n', txt: l.qtd + ' ' + l.un }), el('td', { txt: l.solicitante }));
+      if (mostrarObra) r.appendChild(el('td', null, l.obra, l.cnpj ? el('div', { cls: 'cnpj', txt: 'CNPJ ' + l.cnpj }) : null));
+      r.appendChild(el('td', { cls: pend ? 'pendente' : '', txt: pend ? 'Pendente de aprovação' : 'Aprovado' + (l.aprovadoPor ? ' por ' + l.aprovadoPor : '') })); tb.appendChild(r);
+    });
+    return el('div', { cls: 'tabela-wrap' }, el('table', { cls: 'rel' }, el('thead', null, tr), tb));
+  }
+  function tabelaDisp(linhas, mostrarCat) {
+    var cab = (mostrarCat ? ['Categoria'] : []).concat(['Material', 'No galpão', 'Reservado (a retirar)', 'A chegar', 'Disponível']);
+    var tr = el('tr'); cab.forEach(function (c) { tr.appendChild(el('th', { txt: c })); });
+    var tb = el('tbody');
+    linhas.forEach(function (l) {
+      var r = el('tr'); if (mostrarCat) r.appendChild(el('td', { txt: l.categoria }));
+      r.appendChild(el('td', { txt: l.material + (l.oculto ? ' (oculto)' : '') })); r.appendChild(el('td', { cls: 'n', txt: l.fis + ' ' + l.un }));
+      r.appendChild(el('td', { cls: 'n', txt: String(l.aRet) })); r.appendChild(el('td', { cls: 'n', txt: String(l.aEnt) })); r.appendChild(el('td', { cls: 'n', style: 'font-weight:700', txt: l.disp + ' ' + l.un })); tb.appendChild(r);
+    });
+    return el('div', { cls: 'tabela-wrap' }, el('table', { cls: 'rel' }, el('thead', null, tr), tb));
+  }
+  function tabelaResumo(resumo, rotuloCol) {
+    var tb = el('tbody'); resumo.forEach(function (x) { tb.appendChild(el('tr', null, el('td', { txt: x.material }), el('td', { cls: 'n', txt: x.qtd + ' ' + x.un }), el('td', { cls: 'n', txt: String(x.lancamentos) }))); });
+    return el('div', { cls: 'tabela-wrap' }, el('table', { cls: 'rel', style: 'min-width:0' }, el('thead', null, el('tr', null, el('th', { txt: 'Material' }), el('th', { txt: 'Quantidade total' }), el('th', { txt: rotuloCol }))), tb));
+  }
+  function desenharRelatorio() {
+    var r = S.rel.dados, res = $('r-res'); res.innerHTML = '';
+    var papel = el('div', { cls: 'rel-papel' });
+    papel.appendChild(el('h2', { txt: r.titulo }));
+    if (r.modelo === 'posicao') {
+      papel.appendChild(el('div', null, el('b', { txt: r.periodo }), r.categoria ? ' · Categoria: ' : ' · Todas as categorias', r.categoria ? el('b', { txt: r.categoria }) : null));
+      papel.appendChild(el('div', { cls: 'rel-totais' }, el('b', { txt: String(r.totais.materiais) }), ' material(is) disponível(is) · ', el('b', { txt: String(r.totais.categorias) }), ' categoria(s)',
+        r.totais.reservados ? ' · ' + r.totais.reservados + ' com todo o saldo já reservado (não listado)' : null));
+      if (!r.linhas.length) papel.appendChild(el('div', { cls: 'vazio', txt: 'Nenhum material disponível com os filtros escolhidos.' }));
+      else if (r.agrupar === 'categoria') r.grupos.forEach(function (g) {
+        papel.appendChild(el('h3', { txt: g.categoria })); papel.appendChild(el('div', { cls: 'nota', txt: g.linhas.length + ' material(is)' })); papel.appendChild(tabelaDisp(g.linhas, false));
+      });
+      else papel.appendChild(tabelaDisp(r.linhas, true));
+    } else if (r.modelo === 'programado') {
+      var ent = r.tipo === 'AChegar';
+      papel.appendChild(el('div', null, 'Datas programadas: ', el('b', { txt: r.periodo }), r.obra ? ' · Obra: ' : ' · Todas as obras', r.obra ? el('b', { txt: r.obra }) : null, r.pendentes ? ' · Inclui pedidos ainda não aprovados' : null));
+      var tot = el('div', { cls: 'rel-totais' }, el('b', { txt: String(r.totais.lancamentos) }), ' item(ns) · ', el('b', { txt: String(r.totais.pedidos) }), ' pedido(s) · ',
+        el('b', { txt: String(r.totais.materiais) }), ' material(is) diferente(s)');
+      if (r.agrupar !== 'obra') { tot.appendChild(document.createTextNode(' · ')); tot.appendChild(el('b', { txt: String(r.totais.obras) })); tot.appendChild(document.createTextNode(' obra(s)')); }
+      if (r.totais.atrasados) tot.appendChild(el('span', { cls: 'atrasado', txt: ' · ' + r.totais.atrasados + ' pedido(s) com data vencida' }));
+      if (r.totais.pendentes) tot.appendChild(el('span', { cls: 'pendente', txt: ' · ' + r.totais.pendentes + ' pendente(s) de aprovação' }));
+      papel.appendChild(tot);
+      if (!r.linhas.length) papel.appendChild(el('div', { cls: 'vazio', txt: 'Nenhum item nesta situação com os filtros escolhidos.' }));
+      else if (r.agrupar === 'obra') r.grupos.forEach(function (g) {
+        papel.appendChild(el('h3', { txt: g.obra })); papel.appendChild(el('div', { cls: 'nota', txt: g.lancamentos + ' item(ns) em ' + g.pedidos + ' pedido(s)' })); papel.appendChild(tabelaProg(g.linhas, false, ent));
+      });
+      else papel.appendChild(tabelaProg(r.linhas, true, ent));
+      if (r.resumo.length) { papel.appendChild(el('h3', { txt: 'Resumo por material' })); papel.appendChild(tabelaResumo(r.resumo, 'Itens')); }
+    } else {
+      var ret = r.tipo === 'Retirada';
+      papel.appendChild(el('div', null, 'Período: ', el('b', { txt: r.periodo }), r.obra ? ' · Obra: ' : ' · Todas as obras', r.obra ? el('b', { txt: r.obra }) : null));
+      papel.appendChild(el('div', { cls: 'rel-totais' }, el('b', { txt: String(r.totais.lancamentos) }), ' lançamento(s) · ', el('b', { txt: String(r.totais.pedidos) }), ' pedido(s) · ',
+        el('b', { txt: String(r.totais.materiais) }), ' material(is) diferente(s)', r.agrupar === 'obra' ? null : ' · ', r.agrupar === 'obra' ? null : el('b', { txt: String(r.totais.obras) }), r.agrupar === 'obra' ? null : ' obra(s)'));
+      if (!r.linhas.length) papel.appendChild(el('div', { cls: 'vazio', txt: 'Nenhum lançamento no período e filtros escolhidos.' }));
+      else if (r.agrupar === 'obra') r.grupos.forEach(function (g) {
+        papel.appendChild(el('h3', { txt: g.obra })); papel.appendChild(el('div', { cls: 'nota', txt: g.lancamentos + ' lançamento(s) em ' + g.pedidos + ' pedido(s)' }));
+        papel.appendChild(tabelaRel(g.linhas, false, ret));
+      });
+      else papel.appendChild(tabelaRel(r.linhas, true, ret));
+      if (r.resumo.length) { papel.appendChild(el('h3', { txt: 'Resumo por material' })); papel.appendChild(tabelaResumo(r.resumo, 'Lançamentos')); }
+    }
+    papel.appendChild(el('div', { cls: 'nota', txt: 'Gerado em ' + fmtDT(r.geradoEm) + ' por ' + r.geradoPor + '.' }));
+    res.appendChild(papel);
+    var erro = el('div', { cls: 'erro', role: 'alert' });
+    var pdf = el('button', { cls: 'prim', type: 'button', id: 'r-pdf', txt: 'Baixar PDF', onclick: function () {
+      pdf.disabled = true; pdf.textContent = 'Gerando PDF...'; erro.textContent = '';
+      chamar('adminRelatorioPdf', S.cod, S.rel.filtro).then(function (x) {
+        var bin = atob(x.base64), bytes = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        var url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+        var a = el('a', { href: url, download: x.nome }); document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 20000); aviso('PDF gerado: ' + x.nome);
+      }).catch(function (e) { erro.textContent = msg(e); })
+        .then(function () { pdf.disabled = false; pdf.textContent = 'Baixar PDF'; });
+    } });
+    var imp = el('button', { cls: 'sec', type: 'button', txt: 'Imprimir', onclick: function () { window.print(); } });
+    res.appendChild(el('div', { cls: 'rel-acoes' }, pdf, imp)); res.appendChild(erro);
+  }
+
+  // ---------- administradores ----------
+  function carregarAdmins() {
+    var box = $('aba-adm'); box.innerHTML = ''; box.appendChild(el('div', { cls: 'vazio', txt: 'Carregando...' }));
+    chamar('adminListarAdmins', S.cod).then(function (l) { S.adm = l; desenharAdmins(); })
+      .catch(function (e) { box.innerHTML = ''; box.appendChild(el('div', { cls: 'vazio erro', txt: msg(e) })); });
+  }
+  function campoSenha(id, rotulo, auto) {
+    var inp = el('input', { type: 'password', id: id, maxlength: '40', autocomplete: auto || 'new-password', autocapitalize: 'off', spellcheck: 'false', 'aria-label': rotulo });
+    var chk = el('input', { type: 'checkbox', onchange: function () { inp.type = chk.checked ? 'text' : 'password'; } });
+    return { inp: inp, bloco: el('div', null, inp, el('label', { cls: 'mostrar' }, chk, 'Mostrar a senha')) };
+  }
+  function campoUsuario(id, rotulo) {
+    return el('input', { type: 'text', id: id, maxlength: '30', autocomplete: 'off', autocapitalize: 'none', autocorrect: 'off', spellcheck: 'false', 'aria-label': rotulo, placeholder: 'ex.: joao.silva' });
+  }
+  var DICA_USUARIO = 'Usuário (3 a 30 letras minúsculas sem acento, números, . - _)';
+  var DICA_SENHA = 'Senha (6 a 40 caracteres, sem espaços)';
+  function ultimo(a) { return a.ultimoAcesso ? 'Último acesso: ' + fmtDT(a.ultimoAcesso) : 'Ainda não entrou'; }
+
+  // ---------- administradores ----------
+  function carregarAdmins() {
+    var box = $('aba-adm'); box.innerHTML = ''; box.appendChild(el('div', { cls: 'vazio', txt: 'Carregando...' }));
+    chamar('adminListarAdmins', S.cod).then(function (l) { S.adm = l; desenharAdmins(); })
+      .catch(function (e) { box.innerHTML = ''; box.appendChild(el('div', { cls: 'vazio erro', txt: msg(e) })); });
+  }
+  function desenharAdmins() {
+    var box = $('aba-adm'); box.innerHTML = '';
+    box.appendChild(el('p', { cls: 'nota', txt: 'Todos os administradores têm o mesmo acesso. O nome de quem entrou aparece nos registros (aprovações, baixas e ajustes de saldo). A senha não fica visível depois de cadastrada: quem esquecer, ganha uma nova.' }));
+    var nome = el('input', { type: 'text', id: 'adm-nome', maxlength: '40', autocomplete: 'off', 'aria-label': 'Nome do administrador' });
+    var user = campoUsuario('adm-user', 'Usuário do administrador');
+    var cod = campoSenha('adm-senha', 'Senha inicial');
+    var erro = el('div', { cls: 'erro', role: 'alert' });
+    var ok = el('button', { cls: 'prim', type: 'button', txt: 'Cadastrar administrador', onclick: function () {
+      ok.disabled = true; erro.textContent = '';
+      chamar('adminNovoAdmin', S.cod, nome.value, user.value, cod.inp.value).then(function () { aviso('Administrador cadastrado.'); carregarAdmins(); })
+        .catch(function (e) { ok.disabled = false; erro.textContent = msg(e); });
+    } });
+    box.appendChild(el('div', { cls: 'novo' },
+      el('h3', { txt: 'Novo administrador', style: 'margin:12px 0 0' }),
+      el('div', { cls: 'grade2' },
+        el('div', null, el('label', { for: 'adm-nome', txt: 'Nome (aparece nos registros)' }), nome),
+        el('div', null, el('label', { for: 'adm-user', txt: DICA_USUARIO }), user),
+        el('div', null, el('label', { for: 'adm-senha', txt: DICA_SENHA }), cod.bloco)),
+      el('div', { cls: 'acoes' }, ok), erro));
+    S.adm.forEach(function (a) { box.appendChild(linhaAdmin(a)); });
+  }
+  function linhaAdmin(a) {
+    var card = el('div', { cls: 'adm' });
+    card.appendChild(el('div', { cls: 'nome', txt: a.nome }));
+    if (a.principal) card.appendChild(el('span', { cls: 'chip', txt: 'Principal' }));
+    if (a.eu) card.appendChild(el('span', { cls: 'chip hoje', txt: 'Você' }));
+    card.appendChild(el('span', { cls: 'chip ' + (a.ativo ? 'ok' : 'off'), txt: a.ativo ? 'Ativo' : 'Desativado' }));
+    card.appendChild(el('div', { cls: 'nota', txt: 'Usuário: ' + a.usuario + ' · ' + ultimo(a), style: 'flex:1 1 100%;margin:0' }));
+    if (a.principal) { card.appendChild(el('div', { cls: 'nota', txt: 'A senha do administrador principal é definida no Code.gs (SENHA_ADMIN).', style: 'flex:1 1 100%;margin:0' })); return card; }
+    if (a.criadoPor || a.criadoEm) card.appendChild(el('div', { cls: 'nota', txt: 'Cadastrado' + (a.criadoPor ? ' por ' + a.criadoPor : '') + (a.criadoEm ? ' em ' + fmtDT(a.criadoEm) : ''), style: 'flex:1 1 100%;margin:0' }));
+    var troca = formTrocaSenha(a.usuario, a.eu,
+      function (atual, nova) { return a.eu ? chamar('contaTrocarSenha', S.cod, atual, nova) : chamar('adminTrocarSenha', S.cod, a.nome, nova); },
+      a.eu ? 'Sua senha foi trocada.' : 'Senha de ' + a.nome + ' alterada.');
+    var bTroca = el('button', { cls: 'sec', type: 'button', txt: a.eu ? 'Trocar minha senha' : 'Trocar senha', onclick: function () { troca.hidden = !troca.hidden; if (!troca.hidden) troca.querySelector('input').focus(); } });
+    var bAtivo = el('button', { cls: 'sec' + (a.ativo ? ' perigo' : ''), type: 'button', txt: a.ativo ? 'Desativar' : 'Reativar', onclick: function () {
+      confirmar({ titulo: (a.ativo ? 'Desativar ' : 'Reativar ') + a.nome + '?', texto: a.ativo ? 'A senha dele deixa de funcionar. O histórico dele continua guardado.' : 'A senha dele volta a funcionar.', ok: a.ativo ? 'Desativar' : 'Reativar' }).then(function (r) {
+        if (!r.ok) return;
+        chamar('adminSetAdminAtivo', S.cod, a.nome, !a.ativo).then(function () { aviso(a.ativo ? a.nome + ' desativado.' : a.nome + ' reativado.'); carregarAdmins(); })
+          .catch(function (e) { aviso(msg(e), true); });
+      });
+    } });
+    if (a.eu && a.ativo) { bAtivo.disabled = true; bAtivo.title = 'Você não pode desativar o seu próprio acesso.'; }
+    card.appendChild(el('div', { cls: 'acoes' }, bTroca, bAtivo));
+    card.appendChild(troca);
+    return card;
+  }
+  /** Formulário de troca de senha. propria = a pessoa troca a própria (pede a senha atual); senão, o administrador define uma nova. */
+  function formTrocaSenha(chaveId, propria, enviar, textoOk) {
+    var box = el('div', { cls: 'troca' }); box.hidden = true;
+    var id = 'sn-' + chaveId.replace(/\W/g, '_');
+    var atual = propria ? campoSenha(id + '-atual', 'Senha atual', 'current-password') : null;
+    var nova = campoSenha(id, 'Nova senha');
+    var rep = propria ? campoSenha(id + '-rep', 'Repita a nova senha') : null;
+    var erro = el('div', { cls: 'erro', role: 'alert' });
+    var salvar = el('button', { cls: 'prim', type: 'button', txt: 'Salvar nova senha', onclick: function () {
+      erro.textContent = '';
+      if (propria && nova.inp.value !== rep.inp.value) { erro.textContent = 'As duas senhas novas não são iguais.'; return; }
+      salvar.disabled = true;
+      enviar(atual ? atual.inp.value : '', nova.inp.value).then(function () { aviso(textoOk); box.hidden = true; [atual, nova, rep].forEach(function (c) { if (c) c.inp.value = ''; }); salvar.disabled = false; })
+        .catch(function (e) { salvar.disabled = false; erro.textContent = msg(e); });
+    } });
+    if (atual) { box.appendChild(el('label', { txt: 'Senha atual' })); box.appendChild(atual.bloco); }
+    box.appendChild(el('label', { txt: propria ? 'Nova senha' : 'Nova senha (' + DICA_SENHA.replace('Senha (', '').replace(')', '') + ')' })); box.appendChild(nova.bloco);
+    if (rep) { box.appendChild(el('label', { txt: 'Repita a nova senha' })); box.appendChild(rep.bloco); }
+    box.appendChild(el('div', { cls: 'acoes' }, salvar)); box.appendChild(erro);
+    return box;
+  }
+
+  // ---------- equipe da obra ----------
+  function carregarEquipe() {
+    var box = $('aba-eq');
+    if (S.eq) { desenharEquipe(); return; }
+    box.innerHTML = ''; box.appendChild(el('div', { cls: 'vazio', txt: 'Carregando...' }));
+    chamar('adminListarUsuarios', S.cod).then(function (l) { S.eq = l; desenharEquipe(); })
+      .catch(function (e) { box.innerHTML = ''; box.appendChild(el('div', { cls: 'vazio erro', txt: msg(e) })); });
+  }
+  function desenharEquipe() {
+    var box = $('aba-eq'); box.innerHTML = '';
+    box.appendChild(el('p', { cls: 'nota', txt: 'Só quem estiver aqui consegue pedir material pelo link da obra. O nome cadastrado é o que aparece como solicitante nos pedidos. A senha não fica visível: se alguém esquecer, defina uma nova.' }));
+    var nome = el('input', { type: 'text', id: 'eq-nome', maxlength: '60', autocomplete: 'off', 'aria-label': 'Nome completo' });
+    var user = campoUsuario('eq-user', 'Usuário da pessoa');
+    var cod = campoSenha('eq-senha', 'Senha inicial');
+    var erro = el('div', { cls: 'erro', role: 'alert' });
+    var ok = el('button', { cls: 'prim', type: 'button', txt: 'Cadastrar pessoa', onclick: function () {
+      ok.disabled = true; erro.textContent = '';
+      chamar('adminNovoUsuario', S.cod, nome.value, user.value, cod.inp.value).then(function () { aviso('Pessoa cadastrada.'); S.eq = null; carregarEquipe(); })
+        .catch(function (e) { ok.disabled = false; erro.textContent = msg(e); });
+    } });
+    box.appendChild(el('div', { cls: 'novo' },
+      el('h3', { txt: 'Nova pessoa da obra', style: 'margin:12px 0 0' }),
+      el('div', { cls: 'grade2' },
+        el('div', null, el('label', { for: 'eq-nome', txt: 'Nome completo (aparece nos pedidos)' }), nome),
+        el('div', null, el('label', { for: 'eq-user', txt: DICA_USUARIO }), user),
+        el('div', null, el('label', { for: 'eq-senha', txt: DICA_SENHA + ' — a pessoa pode trocar depois' }), cod.bloco)),
+      el('div', { cls: 'acoes' }, ok), erro));
+    var busca = el('input', { type: 'search', id: 'eq-busca', placeholder: 'Buscar pessoa ou usuário', 'aria-label': 'Buscar pessoa', value: S.filtroEq.q });
+    box.appendChild(el('div', { cls: 'barra' }, busca));
+    var info = el('div', { cls: 'nota' }); box.appendChild(info);
+    var lista = el('div'); box.appendChild(lista);
+    function pinta() {
+      var termos = semAcento(S.filtroEq.q).split(/\s+/).filter(Boolean);
+      var vis = S.eq.filter(function (u) { var k = semAcento(u.nome + ' ' + u.usuario); return termos.every(function (t) { return k.indexOf(t) >= 0; }); });
+      lista.innerHTML = '';
+      vis.forEach(function (u) { lista.appendChild(linhaPessoa(u)); });
+      if (!vis.length) lista.appendChild(el('div', { cls: 'vazio', txt: S.eq.length ? 'Ninguém encontrado.' : 'Ninguém cadastrado ainda. Cadastre a primeira pessoa acima.' }));
+      info.textContent = S.eq.length + ' pessoa(s) cadastrada(s).';
+    }
+    var t = null;
+    busca.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { S.filtroEq.q = busca.value; pinta(); }, 180); });
+    pinta();
+  }
+  function linhaPessoa(u) {
+    var card = el('div', { cls: 'adm' });
+    card.appendChild(el('div', { cls: 'nome', txt: u.nome }));
+    card.appendChild(el('span', { cls: 'chip ' + (u.ativo ? 'ok' : 'off'), txt: u.ativo ? 'Ativo' : 'Desativado' }));
+    card.appendChild(el('div', { cls: 'nota', txt: 'Usuário: ' + u.usuario + ' · ' + ultimo(u), style: 'flex:1 1 100%;margin:0' }));
+    if (u.criadoPor || u.criadoEm) card.appendChild(el('div', { cls: 'nota', txt: 'Cadastrado' + (u.criadoPor ? ' por ' + u.criadoPor : '') + (u.criadoEm ? ' em ' + fmtDT(u.criadoEm) : ''), style: 'flex:1 1 100%;margin:0' }));
+    var troca = formTrocaSenha('p-' + u.usuario, false, function (atual, nova) { return chamar('adminTrocarSenhaUsuario', S.cod, u.usuario, nova); }, 'Senha de ' + u.nome + ' alterada.');
+    var bTroca = el('button', { cls: 'sec', type: 'button', txt: 'Trocar senha', onclick: function () { troca.hidden = !troca.hidden; if (!troca.hidden) troca.querySelector('input').focus(); } });
+    var bAtivo = el('button', { cls: 'sec' + (u.ativo ? ' perigo' : ''), type: 'button', txt: u.ativo ? 'Desativar' : 'Reativar', onclick: function () {
+      confirmar({ titulo: (u.ativo ? 'Desativar ' : 'Reativar ') + u.nome + '?', texto: u.ativo ? 'A pessoa deixa de conseguir entrar e pedir material. Os pedidos dela continuam guardados.' : 'A pessoa volta a conseguir entrar.', ok: u.ativo ? 'Desativar' : 'Reativar' }).then(function (r) {
+        if (!r.ok) return;
+        chamar('adminSetUsuarioAtivo', S.cod, u.usuario, !u.ativo).then(function () { aviso(u.ativo ? u.nome + ' desativado.' : u.nome + ' reativado.'); S.eq = null; carregarEquipe(); })
+          .catch(function (e) { aviso(msg(e), true); });
+      });
+    } });
+    card.appendChild(el('div', { cls: 'acoes' }, bTroca, bAtivo));
+    card.appendChild(troca);
+    return card;
+  }
+
+  // ---------- registro de acessos ----------
+  var seqA = 0, timerA = null;
+  var RESULTADOS = ['Entrou', 'Falha', 'Bloqueado', 'Senha alterada', 'Senha redefinida'];
+  function carregarAcessos() {
+    var box = $('aba-ac');
+    if (!$('ac-lista')) {
+      box.innerHTML = '';
+      var f = S.fa;
+      var perfil = el('select', { id: 'ac-perfil', 'aria-label': 'Tipo de acesso' }, opcao('', 'Obra e administradores'), opcao('Obra', 'Só a obra'), opcao('Administrador', 'Só administradores'));
+      var res = el('select', { id: 'ac-res', 'aria-label': 'Resultado' }, opcao('', 'Todos os resultados')); RESULTADOS.forEach(function (r) { res.appendChild(opcao(r, r)); });
+      var q = el('input', { type: 'search', id: 'ac-q', placeholder: 'Buscar usuário ou nome', 'aria-label': 'Buscar usuário ou nome' });
+      perfil.value = f.perfil; res.value = f.resultado; q.value = f.q;
+      var vai = function () { f.perfil = perfil.value; f.resultado = res.value; f.q = q.value; buscar(); };
+      perfil.addEventListener('change', vai); res.addEventListener('change', vai);
+      q.addEventListener('input', function () { clearTimeout(timerA); timerA = setTimeout(vai, 250); });
+      box.appendChild(el('div', { cls: 'barra' }, perfil, res, q));
+      box.appendChild(el('div', { cls: 'nota', id: 'ac-info' }));
+      box.appendChild(el('div', { id: 'ac-lista' }));
+    }
+    buscar();
+  }
+  function buscar() {
+    var meu = ++seqA, lista = $('ac-lista');
+    chamar('adminAcessos', S.cod, S.fa).then(function (r) {
+      if (meu !== seqA) return;
+      S.ac = r; lista.innerHTML = '';
+      $('ac-info').textContent = r.total + ' registro(s)' + (r.total > r.itens.length ? '; mostrando os ' + r.itens.length + ' mais recentes' : '') + '. Falhas seguidas bloqueiam o usuário por 10 minutos.';
+      if (!r.itens.length) { lista.appendChild(el('div', { cls: 'vazio', txt: 'Nenhum registro com esses filtros.' })); return; }
+      var tr = el('tr'); ['Quando', 'Tipo', 'Usuário', 'Nome', 'Resultado', 'Detalhe'].forEach(function (c) { tr.appendChild(el('th', { txt: c })); });
+      var tb = el('tbody');
+      r.itens.forEach(function (a) {
+        var cls = a.resultado === 'Entrou' ? 'chip ok' : (a.resultado === 'Falha' || a.resultado === 'Bloqueado' ? 'chip off' : 'chip');
+        tb.appendChild(el('tr', null, el('td', { cls: 'n', txt: fmtDT(a.quando) }), el('td', { txt: a.perfil }), el('td', { txt: a.usuario }), el('td', { txt: a.nome || '—' }),
+          el('td', null, el('span', { cls: cls, txt: a.resultado })), el('td', { txt: a.detalhe })));
+      });
+      lista.appendChild(el('div', { cls: 'tabela-wrap' }, el('table', { cls: 'rel', style: 'min-width:0' }, el('thead', null, tr), tb)));
+    }).catch(function (e) { if (meu !== seqA) return; lista.innerHTML = ''; lista.appendChild(el('div', { cls: 'vazio erro', txt: msg(e) })); });
+  }
+
+  // ---------- estoque ----------
+  function carregarEstoque() {
+    var box = $('aba-est');
+    if (S.est && !S.estSujo) { desenharEstoque(); return; }
+    box.innerHTML = ''; box.appendChild(el('div', { cls: 'vazio', txt: 'Carregando estoque...' }));
+    chamar('adminEstoque', S.cod).then(function (lista) { S.est = lista; S.estSujo = false; desenharEstoque(); })
+      .catch(function (e) { box.innerHTML = ''; box.appendChild(el('div', { cls: 'vazio erro', txt: msg(e) })); });
+  }
+  function desenharEstoque() {
+    var box = $('aba-est'); box.innerHTML = '';
+    var f = S.filtroEst;
+    var cats = {}; S.est.forEach(function (m) { cats[m.c] = 1; });
+    var busca = el('input', { type: 'search', placeholder: 'Buscar material', 'aria-label': 'Buscar material', value: f.q });
+    var cat = el('select', { 'aria-label': 'Categoria' }, el('option', { value: '', txt: 'Todas as categorias' }));
+    Object.keys(cats).forEach(function (c) { var o = el('option', { value: c, txt: c }); if (c === f.cat) o.selected = true; cat.appendChild(o); });
+    var modo = el('select', { 'aria-label': 'Filtro' });
+    [['ativos', 'Materiais ativos'], ['saldo', 'Com saldo'], ['zerados', 'Sem saldo'], ['mov', 'Com reserva ou em trânsito'], ['ocultos', 'Ocultos']].forEach(function (p) {
+      var o = el('option', { value: p[0], txt: p[1] }); if (p[0] === f.modo) o.selected = true; modo.appendChild(o);
+    });
+    var novo = el('button', { cls: 'sec', type: 'button', txt: '+ Novo material', onclick: function () { formNovo.hidden = !formNovo.hidden; if (!formNovo.hidden) formNovo.querySelector('input').focus(); } });
+    box.appendChild(el('div', { cls: 'barra' }, busca, cat, modo, novo));
+    var formNovo = formularioNovo(Object.keys(cats)); formNovo.hidden = true; box.appendChild(formNovo);
+    var info = el('div', { cls: 'nota' }); box.appendChild(info);
+    var lista = el('div'); box.appendChild(lista);
+    var mais = el('button', { cls: 'sec', type: 'button', txt: 'Mostrar mais', style: 'width:100%' }); box.appendChild(mais);
+
+    function pinta() {
+      var termos = semAcento(f.q).split(/\s+/).filter(Boolean);
+      var vis = S.est.filter(function (m) {
+        if (f.modo === 'ocultos' ? m.ativo : !m.ativo) return false;
+        if (f.cat && m.c !== f.cat) return false;
+        if (f.modo === 'saldo' && !(m.f > 0)) return false;
+        if (f.modo === 'zerados' && m.f !== 0) return false;
+        if (f.modo === 'mov' && !(m.r > 0 || m.e > 0)) return false;
+        var k = semAcento(m.n + ' ' + m.c);
+        for (var i = 0; i < termos.length; i++) if (k.indexOf(termos[i]) < 0) return false;
+        return true;
+      });
+      lista.innerHTML = '';
+      vis.slice(0, f.limite).forEach(function (m) { lista.appendChild(linhaEstoque(m)); });
+      if (!vis.length) lista.appendChild(el('div', { cls: 'vazio', txt: 'Nenhum material encontrado.' }));
+      info.textContent = vis.length + ' material(is). "Disponível" = no galpão − a retirar.';
+      mais.hidden = vis.length <= f.limite;
+    }
+    var t = null;
+    busca.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { f.q = busca.value; f.limite = 60; pinta(); }, 180); });
+    cat.addEventListener('change', function () { f.cat = cat.value; f.limite = 60; pinta(); });
+    modo.addEventListener('change', function () { f.modo = modo.value; f.limite = 60; pinta(); });
+    mais.addEventListener('click', function () { f.limite += 60; pinta(); });
+    pinta();
+  }
+  function num(rot, v, neg) { return el('div', { cls: neg ? 'neg' : '' }, el('span', { txt: rot }), el('b', { txt: String(v) })); }
+  function linhaEstoque(m) {
+    var card = el('div', { cls: 'mat' + (m.ativo ? '' : ' oculto') });
+    card.appendChild(el('div', { cls: 'l1' },
+      el('div', null, el('div', { cls: 'nome', txt: m.n }), el('div', { cls: 'cat', txt: m.c + ' · ' + m.u + ' · ' + m.id })),
+      el('div', { cls: 'nums' }, num('No galpão', m.f, m.f < 0), num('A retirar', m.r), num('A entrar', m.e), num('Disponível', m.d, m.d < 0))));
+    var area = el('div'); area.hidden = true;
+    var ajustar = el('button', { cls: 'sec', type: 'button', txt: 'Ajustar saldo', onclick: function () { area.hidden = !area.hidden; if (!area.hidden) area.querySelector('input').focus(); } });
+    var ocultar = el('button', { cls: 'sec', type: 'button', txt: m.ativo ? 'Ocultar' : 'Reativar', onclick: function () {
+      chamar('adminAtivar', S.cod, m.id, !m.ativo).then(function () { m.ativo = !m.ativo; desenharEstoque(); aviso(m.ativo ? 'Material reativado.' : 'Material oculto dos pedidos.'); })
+        .catch(function (e) { aviso(msg(e), true); });
+    } });
+    card.appendChild(el('div', { cls: 'acoes' }, ajustar, ocultar));
+    var cont = el('input', { type: 'number', min: '0', step: '1', inputmode: 'numeric', 'aria-label': 'Contagem real de ' + m.n, value: String(m.f) });
+    var motivo = el('input', { type: 'text', maxlength: '200', placeholder: 'Ex.: contagem física, material danificado', 'aria-label': 'Motivo do ajuste (obrigatório)', required: 'required' });
+    var erro = el('div', { cls: 'erro', role: 'alert' });
+    var salvar = el('button', { cls: 'prim', type: 'button', txt: 'Salvar ajuste', disabled: 'disabled', onclick: function () {
+      var novo = Number(cont.value), delta = novo - m.f;
+      confirmar({ titulo: 'Ajustar o saldo?', texto: m.n + '\nDe ' + m.f + ' para ' + novo + ' ' + m.u + ' (' + (delta > 0 ? '+' : '') + delta + ').\nFica no Histórico em nome de ' + S.admin + ', com o motivo informado.', ok: 'Ajustar' }).then(function (c) {
+        if (!c.ok) return;
+        salvar.disabled = true; erro.textContent = '';
+        chamar('adminAjustar', S.cod, m.id, novo, motivo.value).then(function (r) {
+          m.f = r.f; m.d = r.d; S.histSujo = true; aviso('Saldo ajustado para ' + r.f + ' ' + m.u + '.'); desenharEstoque();
+        }).catch(function (e) { salvar.disabled = false; erro.textContent = msg(e); });
+      });
+    } });
+    function validarAjuste() { salvar.disabled = !(motivo.value.trim().length >= 3 && cont.value !== '' && Number(cont.value) !== m.f); }
+    cont.addEventListener('input', validarAjuste); motivo.addEventListener('input', validarAjuste);
+    area.className = 'ajuste';
+    area.appendChild(el('div', { cls: 'grade2' },
+      el('div', null, el('label', { txt: 'Contagem real no galpão (' + m.u + ')' }), cont),
+      el('div', null, el('label', { txt: 'Motivo do ajuste (obrigatório)' }), motivo)));
+    area.appendChild(el('div', { cls: 'nota', txt: 'O ajuste fica registrado no Histórico com o seu nome e o motivo.' }));
+    area.appendChild(el('div', { cls: 'acoes' }, salvar)); area.appendChild(erro);
+    card.appendChild(area);
+    return card;
+  }
+  function formularioNovo(cats) {
+    var nome = el('input', { type: 'text', maxlength: '120', 'aria-label': 'Nome do material' });
+    var dl = el('datalist', { id: 'lista-cats' }); cats.forEach(function (c) { dl.appendChild(el('option', { value: c })); });
+    var cat = el('input', { type: 'text', maxlength: '60', list: 'lista-cats', 'aria-label': 'Categoria' });
+    var un = el('select', { 'aria-label': 'Unidade' }); ['un', 'm', 'kg', 'L', 'pct', 'kit', 'rolo', 'par', 'cx'].forEach(function (u) { un.appendChild(el('option', { value: u, txt: u })); });
+    var qtd = el('input', { type: 'number', min: '0', step: '1', inputmode: 'numeric', value: '0', 'aria-label': 'Quantidade inicial' });
+    var erro = el('div', { cls: 'erro', role: 'alert' });
+    var ok = el('button', { cls: 'prim', type: 'button', txt: 'Cadastrar material', onclick: function () {
+      ok.disabled = true; erro.textContent = '';
+      chamar('adminNovoMaterial', S.cod, nome.value, cat.value, un.value, Number(qtd.value || 0)).then(function (r) {
+        S.estSujo = true; aviso('Material cadastrado: ' + r.id + '.'); carregarEstoque();
+      }).catch(function (e) { ok.disabled = false; erro.textContent = msg(e); });
+    } });
+    return el('div', { cls: 'novo' }, dl,
+      el('label', { txt: 'Nome do material (padrão: Item Medida Marca)' }), nome,
+      el('div', { cls: 'grade2' },
+        el('div', null, el('label', { txt: 'Categoria' }), cat),
+        el('div', null, el('label', { txt: 'Unidade' }), un),
+        el('div', null, el('label', { txt: 'Quantidade inicial no galpão' }), qtd)),
+      el('div', { cls: 'acoes' }, ok), erro);
+  }
+})();
+</script>
+</body>
+</html>
