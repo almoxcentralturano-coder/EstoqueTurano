@@ -1,4 +1,5 @@
 {
+  "id": "./",
   "name": "Estoque do Galpão — Turano",
   "short_name": "Estoque Turano",
   "start_url": "./",
@@ -19,6 +20,5 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ],
-  "id": "./"
+  ]
 }

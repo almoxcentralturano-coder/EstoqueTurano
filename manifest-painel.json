@@ -1,7 +1,8 @@
 {
+  "id": "./",
   "name": "Painel de gestão — Turano",
   "short_name": "Gestão Turano",
-  "start_url": "./painel.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f8fafc",
@@ -17,8 +18,7 @@
       "src": "icone-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
-  ],
-  "id": "./painel.html"
+  ]
 }
