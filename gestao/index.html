@@ -135,6 +135,7 @@
     details.hist summary { @apply flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl px-4 py-3 text-sm transition-all duration-200 hover:bg-slate-50; }
     details.hist summary::-webkit-details-marker { display: none; }
     details.hist .corpo { @apply px-4 pb-4; }
+    .aj.rec { @apply border-l-slate-400 opacity-90; }
     .aj { @apply mb-2.5 rounded-xl border border-l-4 border-slate-200 border-l-amber-500 bg-white p-4 shadow-sm; }
     .aj .mov { @apply my-1.5 text-lg font-bold tracking-tight text-slate-900; }
     .aj .mov.neg { @apply text-rose-600; }
@@ -195,6 +196,42 @@
     .visor-corpo img { @apply max-h-full max-w-full rounded-lg object-contain shadow-2xl; }
     .visor-corpo iframe { @apply h-full w-full rounded-lg bg-white; }
     .visor-corpo .aviso-v { @apply max-w-sm rounded-xl bg-white p-6 text-center text-sm text-slate-600; }
+    /* usados: sempre em vermelho */
+    .tag-usado { @apply ml-1.5 inline-flex items-center rounded-full bg-rose-600 px-2 py-0.5 align-middle text-[10px] font-bold uppercase tracking-wide text-white; }
+    .txt-usado { @apply text-rose-800; }
+    .mat.usado { @apply border-rose-300 bg-rose-50; }
+    .il .nome .txt-usado { @apply font-semibold; }
+    td.usado-l { @apply font-semibold text-rose-700; }
+    .chip.pend-aj { @apply bg-amber-50 text-amber-700; }
+    /* ajustes aguardando o principal */
+    .sec-tit { @apply mb-3 mt-8 flex items-center gap-2 text-base font-semibold text-slate-800; }
+    .pedido.ajuste-p { @apply border-l-amber-500; }
+    .nome-aj { @apply mt-2 text-base font-semibold text-slate-900; }
+    .meta b.neg { @apply text-rose-600; }
+    /* nova requisição */
+    .seg { @apply grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1; }
+    .seg-op { @apply flex min-h-[2.75rem] items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition-all duration-200 hover:text-slate-900; }
+    .seg-op[aria-checked="true"] { @apply bg-white text-brand-800 shadow-sm ring-1 ring-slate-200; }
+    .novo.req { @apply p-4 sm:p-5; }
+    .etapas { @apply grid gap-2 sm:grid-cols-3; }
+    .etapa { @apply m-0 flex cursor-pointer items-start gap-2.5 rounded-xl border border-slate-200 bg-white p-3 text-sm font-normal transition-all duration-200 hover:border-brand-300; }
+    .etapa:has(input:checked) { @apply border-brand-500 bg-brand-50 ring-1 ring-brand-300; }
+    .etapa input { @apply mt-0.5 h-4 w-4 flex-none accent-brand-800; }
+    .etapa b { @apply block font-semibold text-slate-900; }
+    .req-busca { @apply mt-3 flex flex-wrap items-center gap-3; }
+    .req-busca input[type=search] { @apply min-w-[12rem] flex-1; }
+    .chave-p { @apply m-0 flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700; }
+    .chave-p:has(input:checked) { @apply border-rose-300 bg-rose-50 text-rose-800; }
+    .chave-p input { @apply h-4 w-4 accent-rose-600; }
+    .req-res, .req-sel { @apply mt-2; }
+    .req-item { @apply mt-2 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3; }
+    .req-item.usado { @apply border-rose-300 bg-rose-50; }
+    .req-item .info { @apply min-w-0 flex-1 basis-56; }
+    .req-item .nome { @apply break-words text-sm font-medium text-slate-900; }
+    .req-item .cat { @apply text-xs text-slate-500; }
+    .req-item input { @apply w-24 px-3 py-2 text-right font-semibold; }
+    .req-item button { @apply px-3 py-2 text-xs; }
+    .link-p { @apply mt-2 inline-flex items-center gap-1.5 rounded-lg px-1 py-1.5 text-sm font-semibold text-brand-700 transition-all duration-200 hover:bg-brand-50; }
     /* cadastros */
     .cad-sec { @apply mb-8; }
     .cad-sec h2 { @apply mb-1 flex items-center gap-2 text-lg font-semibold text-slate-900; }
@@ -250,10 +287,11 @@
     <nav class="order-3 mt-2 flex w-full gap-1 overflow-x-auto pb-1 lg:order-2 lg:mt-6 lg:flex-col lg:overflow-visible lg:pb-0" role="tablist" id="abas" aria-label="Seções do painel">
       <button class="tab" role="tab" data-aba="pend" aria-selected="true"><i data-lucide="clock" class="h-4 w-4 flex-none"></i><span>Pendentes</span><span class="badge" id="n-pend">0</span></button>
       <button class="tab" role="tab" data-aba="aprov" aria-selected="false"><i data-lucide="package-check" class="h-4 w-4 flex-none"></i><span>Aguardando baixa</span><span class="badge" id="n-aprov">0</span></button>
+      <button class="tab" role="tab" data-aba="req" aria-selected="false"><i data-lucide="file-plus-2" class="h-4 w-4 flex-none"></i><span>Nova requisição</span></button>
       <button class="tab" role="tab" data-aba="est" aria-selected="false"><i data-lucide="boxes" class="h-4 w-4 flex-none"></i><span>Estoque</span></button>
       <button class="tab" role="tab" data-aba="hist" aria-selected="false"><i data-lucide="history" class="h-4 w-4 flex-none"></i><span>Histórico</span></button>
       <button class="tab" role="tab" data-aba="rel" aria-selected="false"><i data-lucide="file-text" class="h-4 w-4 flex-none"></i><span>Relatórios</span></button>
-      <button class="tab" role="tab" data-aba="cad" aria-selected="false"><i data-lucide="building-2" class="h-4 w-4 flex-none"></i><span>Obras e fornecedores</span></button>
+      <button class="tab" role="tab" data-aba="cad" aria-selected="false"><i data-lucide="building-2" class="h-4 w-4 flex-none"></i><span>Cadastros</span></button>
       <button class="tab" role="tab" data-aba="eq" aria-selected="false"><i data-lucide="hard-hat" class="h-4 w-4 flex-none"></i><span>Equipe da obra</span></button>
       <button class="tab" role="tab" data-aba="adm" aria-selected="false"><i data-lucide="users" class="h-4 w-4 flex-none"></i><span>Administradores</span></button>
       <button class="tab" role="tab" data-aba="ac" aria-selected="false"><i data-lucide="shield-check" class="h-4 w-4 flex-none"></i><span>Acessos</span></button>
@@ -273,6 +311,7 @@
     </div>
     <div id="aba-pend"></div>
     <div id="aba-aprov" hidden></div>
+    <div id="aba-req" hidden></div>
     <div id="aba-est" hidden></div>
     <div id="aba-hist" hidden></div>
     <div id="aba-rel" hidden></div>
@@ -312,11 +351,23 @@
   // ---------- conexão com o servidor ----------
   // Dentro do Google (link /exec) a tela usa google.script.run. No site do GitHub Pages ela chama o MESMO servidor
   // pela internet, o que evita o erro do Google quando há mais de uma conta logada no navegador.
-  // COLE ABAIXO o ID da implantação: o trecho entre /s/ e /exec do link do app da Web.
-  var API_ID = 'AKfycbxKwGwJqeOZEwzqjZFkbGcMJH4jW72i0z0tlPuJATBo-mftETGy9Zydx85XyB1jqtg8ug';
+  // O ID da implantação (o trecho entre /s/ e /exec do link do app da Web) fica no arquivo config.js do site,
+  // na raiz do repositório do GitHub. Assim, ao atualizar esta tela, não é preciso colar o ID de novo.
+  // (Se preferir, também dá para colar o ID direto aqui, no lugar do texto abaixo.)
+  var API_ID = 'COLE-AQUI-O-ID-DA-IMPLANTACAO';
   var DENTRO_DO_GOOGLE = !!(window.google && google.script && google.script.run);
   if (!DENTRO_DO_GOOGLE) (function () {
-    var url = 'https:' + '/' + '/script.google.com/macros/s/' + API_ID + '/exec';
+    var idPronto = null;
+    function lerId() {
+      if (API_ID.indexOf('COLE-AQUI') !== 0) return Promise.resolve(API_ID);
+      if (!idPronto) idPronto = new Promise(function (ok) {
+        var sc = document.createElement('script'); sc.src = '../config.js?v=' + Date.now();
+        sc.onload = function () { ok(String(window.ESTOQUE_API_ID || '').trim()); };
+        sc.onerror = function () { idPronto = null; ok(''); };
+        document.head.appendChild(sc);
+      });
+      return idPronto;
+    }
     function erroDeRede(e) {
       var m = (e && e.message) || String(e);
       return /fetch|network|load failed/i.test(m) ? 'Sem conexão com o servidor. Confira a internet e tente de novo.' : m;
@@ -328,8 +379,11 @@
         return function () {
           var args = Array.prototype.slice.call(arguments);
           var falhou = function (e) { if (falha) falha(new Error(erroDeRede(e))); else console.error(erroDeRede(e)); };
-          if (API_ID.indexOf('COLE-AQUI') === 0) { falhou(new Error('Site ainda não configurado: cole o ID da implantação (API_ID) no arquivo.')); return; }
-          fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: String(nome), args: args }) })
+          lerId().then(function (id) {
+            if (!id || id.indexOf('COLE-AQUI') === 0) throw new Error('Site ainda não configurado: cole o ID da implantação no arquivo config.js do GitHub.');
+            var url = 'https:' + '/' + '/script.google.com/macros/s/' + id + '/exec';
+            return fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: String(nome), args: args }) });
+          })
             .then(function (r) { return r.text(); })
             .then(function (t) {
               var j; try { j = JSON.parse(t); } catch (e) { throw new Error('O servidor não respondeu como esperado. Confira o ID da implantação e se ela está publicada para "Qualquer pessoa".'); }
@@ -347,7 +401,7 @@
   if (!DENTRO_DO_GOOGLE) [['manifest', MANIFESTO], ['icon', 'icone-192.png'], ['apple-touch-icon', 'icone-180.png']].forEach(function (p) {
     var l = document.createElement('link'); l.rel = p[0]; l.href = p[1]; document.head.appendChild(l);
   });
-  var S = { cod: '', admin: '', obras: [], rel: null, hoje: '', pend: [], aprov: [], hres: null, histSujo: true, fh: { tipo: '', status: '', obra: '', de: '', ate: '', q: '', limite: 100 }, adm: null, cad: null, filtroCad: { q: '' }, eq: null, filtroEq: { q: '' }, fa: { perfil: '', resultado: '', q: '' }, ac: null, est: null, aba: 'pend', filtroEst: { q: '', cat: '', modo: 'ativos', limite: 60 }, estSujo: true };
+  var S = { cod: '', admin: '', obras: [], rel: null, hoje: '', pend: [], aprov: [], hres: null, histSujo: true, fh: { tipo: '', status: '', obra: '', de: '', ate: '', q: '', limite: 100 }, adm: null, cad: null, cats: [], ajustes: [], principal: false, nomePrincipal: '', filtroCad: { q: '' }, eq: null, filtroEq: { q: '' }, fa: { perfil: '', resultado: '', q: '' }, ac: null, est: null, aba: 'pend', filtroEst: { q: '', cat: '', modo: 'ativos', limite: 60 }, estSujo: true };
   var $ = function (id) { return document.getElementById(id); };
 
   // ---------- ícones (Lucide): qualquer <i data-lucide="nome"> vira um ícone, mesmo os criados depois ----------
@@ -379,7 +433,8 @@
     est: ['Estoque', 'Saldo no galpão, reservas e material em trânsito.'],
     hist: ['Histórico', 'Pedidos encerrados e ajustes de saldo, com filtros.'],
     rel: ['Relatórios', 'Retiradas e entradas feitas, estoque disponível, o que vai chegar e o que está programado para sair. Veja na tela ou baixe em PDF.'],
-    cad: ['Obras e fornecedores', 'Obras e fornecedores que aparecem nos pedidos. A equipe da obra também pode cadastrar pela tela de pedido.'],
+    cad: ['Cadastros', 'Obras, fornecedores e categorias de materiais. A equipe da obra também cadastra obras, fornecedores e materiais pela tela de pedido.'],
+    req: ['Nova requisição', 'Retirada ou entrada lançada pelo galpão, inclusive com data passada.'],
     eq: ['Equipe da obra', 'Quem pode pedir material pelo link da obra. Cada pessoa entra com usuário e senha próprios.'],
     adm: ['Administradores', 'Quem tem acesso a este painel. Cada um entra com usuário e senha próprios.'],
     ac: ['Acessos', 'Quem entrou, quando, e as tentativas que não deram certo.']
@@ -473,7 +528,8 @@
     S.fh = { tipo: '', status: '', obra: '', de: '', ate: '', q: '', limite: 100 }; S.adm = null; S.est = null; S.aba = 'pend';
     S.filtroEst = { q: '', cat: '', modo: 'ativos', limite: 60 }; S.estSujo = true;
     montouH = false; montouR = false;
-    ['aba-pend', 'aba-aprov', 'aba-est', 'aba-hist', 'aba-rel', 'aba-cad', 'aba-eq', 'aba-adm', 'aba-ac'].forEach(function (id) { $(id).innerHTML = ''; });
+    ['aba-pend', 'aba-aprov', 'aba-req', 'aba-est', 'aba-hist', 'aba-rel', 'aba-cad', 'aba-eq', 'aba-adm', 'aba-ac'].forEach(function (id) { $(id).innerHTML = ''; });
+    S.ajustes = []; S.principal = false; S.nomePrincipal = ''; S.cats = []; REQ = null;
     S.cad = null; S.filtroCad = { q: '' }; fecharVisor(); limparArquivos();
     $('painel').hidden = true; $('login-wrap').hidden = false;
     ['btn-atualizar', 'btn-sair', 'quem'].forEach(function (id) { $(id).hidden = true; });
@@ -487,9 +543,11 @@
   function aplicar(d) {
     S.obras = d.obras || [];
     S.hoje = d.hoje; S.pend = d.pendentes; S.aprov = d.aprovados; S.admin = d.admin || '';
+    S.ajustes = d.ajustes || []; S.principal = !!d.principal; S.nomePrincipal = d.nomePrincipal || 'o administrador principal';
     $('quem').textContent = S.admin ? 'Olá, ' + S.admin : ''; $('quem').hidden = !S.admin;
     atualizarKpis();
-    $('n-pend').textContent = S.pend.length; $('n-pend').className = 'badge' + (S.pend.length ? '' : ' zero');
+    var np = S.pend.length + (S.principal ? S.ajustes.length : 0);   // o principal também conta os ajustes que só ele aprova
+    $('n-pend').textContent = np; $('n-pend').className = 'badge' + (np ? '' : ' zero');
     $('n-aprov').textContent = S.aprov.length; $('n-aprov').className = 'badge' + (S.aprov.length ? '' : ' zero');
   }
   function atualizarKpis() {
@@ -516,9 +574,10 @@
     S.aba = a;
     $('titulo-aba').textContent = TITULOS[a][0]; $('sub-aba').textContent = TITULOS[a][1];
     $('kpis').hidden = !(a === 'pend' || a === 'aprov');
-    ['pend', 'aprov', 'est', 'hist', 'rel', 'cad', 'eq', 'adm', 'ac'].forEach(function (k) { $('aba-' + k).hidden = (k !== a); });
+    ['pend', 'aprov', 'req', 'est', 'hist', 'rel', 'cad', 'eq', 'adm', 'ac'].forEach(function (k) { $('aba-' + k).hidden = (k !== a); });
     Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) { t.setAttribute('aria-selected', t.dataset.aba === a ? 'true' : 'false'); });
-    if (a === 'pend') desenharPedidos('aba-pend', S.pend, 'pend');
+    if (a === 'pend') { desenharPedidos('aba-pend', S.pend, 'pend'); desenharAjustesPend(); }
+    if (a === 'req') carregarReq();
     if (a === 'aprov') desenharPedidos('aba-aprov', S.aprov, 'aprov');
     if (a === 'hist') carregarHistorico();
     if (a === 'rel') carregarRelatorios();
@@ -579,7 +638,7 @@
       var inp = el('input', { type: 'number', min: '0', step: '1', inputmode: 'numeric', value: String(padrao), 'aria-label': 'Quantidade a aprovar de ' + i.nome, data: { mid: i.mid } });
       inputs.push(inp);
       var linha = el('div', { cls: 'il' },
-        el('div', { cls: 'nome', txt: i.nome }),
+        el('div', { cls: 'nome' }, nomeComTag(i.nome, i.usado)),
         celula('Pedido', i.solic + ' ' + i.un),
         ret ? celula('Disponível', Math.max(0, i.disp) + ' ' + i.un) : celula('', ''),
         el('div', { cls: 'c', data: { l: 'Aprovar' } }, inp));
@@ -628,7 +687,7 @@
       inp.addEventListener('input', checar);
       inputs.push(inp);
       card.appendChild(el('div', { cls: 'il' },
-        el('div', { cls: 'nome', txt: i.nome }),
+        el('div', { cls: 'nome' }, nomeComTag(i.nome, i.usado)),
         celula('Aprovado', i.aprov + ' ' + i.un),
         ret ? celula('No galpão', i.fis + ' ' + i.un) : celula('', ''),
         el('div', { cls: 'c', data: { l: ret ? 'Saiu de fato' : 'Entrou de fato' } }, inp), alerta));
@@ -824,7 +883,7 @@
   }
   function carregarCadastros() {
     var box = $('aba-cad'); box.innerHTML = ''; box.appendChild(el('div', { cls: 'vazio', txt: 'Carregando...' }));
-    chamar('adminCadastros', S.cod).then(function (r) { S.cad = r; desenharCadastros(); })
+    Promise.all([chamar('adminCadastros', S.cod), chamar('adminCategorias', S.cod)]).then(function (r) { S.cad = r[0]; S.cad.categorias = r[1]; desenharCadastros(); })
       .catch(function (e) { box.innerHTML = ''; box.appendChild(el('div', { cls: 'vazio erro', txt: msg(e) })); });
   }
   function desenharCadastros() {
@@ -859,6 +918,19 @@
         el('div', null, el('label', { for: 'cad-forn', txt: 'Nome do fornecedor' }), nomeF),
         el('div', null, el('label', { for: 'cad-cnpj', txt: 'CNPJ (aceita o formato novo, com letras)' }), cnpjF)), el('div', { cls: 'acoes' }, okF), erroF),
       infoF, listaF));
+    // ---- categorias
+    var nomeC = el('input', { type: 'text', id: 'cad-cat', maxlength: '60', autocomplete: 'off', placeholder: 'Ex.: EPI e Segurança' });
+    var erroC = el('div', { cls: 'erro', role: 'alert' });
+    var okC = el('button', { cls: 'prim', type: 'button', onclick: function () {
+      okC.disabled = true; erroC.textContent = '';
+      chamar('adminNovaCategoria', S.cod, nomeC.value).then(function (r) { aviso('Categoria ' + r.nome + ' cadastrada.'); S.estSujo = true; carregarCadastros(); })
+        .catch(function (e) { okC.disabled = false; erroC.textContent = msg(e); });
+    } }, ic('plus', 'h-4 w-4'), 'Cadastrar categoria');
+    var listaC = el('div'), infoC = el('div', { cls: 'nota' });
+    box.appendChild(el('section', { cls: 'cad-sec' },
+      el('h2', null, ic('tags', 'h-5 w-5 text-brand-700'), 'Categorias de materiais'),
+      el('div', { cls: 'novo' }, el('div', { cls: 'grade2' }, el('div', null, el('label', { for: 'cad-cat', txt: 'Nome da categoria nova' }), nomeC)), el('div', { cls: 'acoes' }, okC), erroC),
+      infoC, listaC));
     function pinta() {
       var termos = semAcento(S.filtroCad.q).split(/\s+/).filter(Boolean);
       var bate = function (txt) { var k = semAcento(txt); return termos.every(function (t) { return k.indexOf(t) >= 0; }); };
@@ -871,10 +943,36 @@
       if (!forns.length) listaF.appendChild(el('div', { cls: 'vazio', txt: S.cad.fornecedores.length ? 'Nenhum fornecedor encontrado.' : 'Nenhum fornecedor cadastrado ainda.' }));
       infoO.textContent = S.cad.obras.length + ' obra(s), ' + S.cad.obras.filter(function (o) { return o.ativa; }).length + ' ativa(s).';
       infoF.textContent = S.cad.fornecedores.length + ' fornecedor(es), ' + S.cad.fornecedores.filter(function (f) { return f.ativo; }).length + ' ativo(s).';
+      var cats = S.cad.categorias.filter(function (c) { return bate(c.nome); });
+      listaC.innerHTML = ''; cats.forEach(function (c) { listaC.appendChild(linhaCategoria(c)); });
+      if (!cats.length) listaC.appendChild(el('div', { cls: 'vazio', txt: 'Nenhuma categoria encontrada.' }));
+      infoC.textContent = S.cad.categorias.length + ' categoria(s), ' + S.cad.categorias.filter(function (c) { return c.ativa; }).length + ' ativa(s). Categoria desativada some dos cadastros de material; os materiais dela continuam.';
     }
     var t = null;
     busca.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { S.filtroCad.q = busca.value; pinta(); }, 180); });
     pinta();
+  }
+  function linhaCategoria(c) {
+    var card = el('div', { cls: 'adm' });
+    card.appendChild(el('div', { cls: 'nome', txt: c.nome }));
+    card.appendChild(el('span', { cls: 'chip ' + (c.ativa ? 'ok' : 'off'), txt: c.ativa ? 'Ativa' : 'Desativada' }));
+    card.appendChild(el('div', { cls: 'nota', style: 'flex:1 1 100%;margin:0', txt: c.materiais + ' material(is) · ' + (c.criadaPor || c.criadaEm ? quemCadastrou(c.criadaPor, c.criadaEm).replace('Cadastrado', 'Cadastrada') : 'Vem dos materiais já existentes') }));
+    var form = el('div', { cls: 'troca' }); form.hidden = true;
+    var novo = el('input', { type: 'text', maxlength: '60', value: c.nome, id: 'ren-' + semAcento(c.nome).replace(/[^a-z0-9]/g, '_') });
+    var erro = el('div', { cls: 'erro', role: 'alert' });
+    var salvar = el('button', { cls: 'prim', type: 'button', onclick: function () {
+      salvar.disabled = true; erro.textContent = '';
+      chamar('adminRenomearCategoria', S.cod, c.nome, novo.value).then(function (r) { aviso('Categoria renomeada (' + r.materiais + ' material(is) atualizados).'); S.estSujo = true; carregarCadastros(); })
+        .catch(function (e) { salvar.disabled = false; erro.textContent = msg(e); });
+    } }, ic('check', 'h-4 w-4'), 'Salvar nome');
+    form.appendChild(el('label', { for: novo.id, txt: 'Novo nome (os materiais da categoria acompanham)' })); form.appendChild(novo);
+    form.appendChild(el('div', { cls: 'acoes' }, salvar)); form.appendChild(erro);
+    card.appendChild(el('div', { cls: 'acoes' },
+      el('button', { cls: 'sec', type: 'button', onclick: function () { form.hidden = !form.hidden; if (!form.hidden) novo.focus(); } }, ic('pencil', 'h-4 w-4'), 'Renomear'),
+      botaoAtivo(c.ativa, c.nome, c.ativa ? 'Ela deixa de aparecer nos cadastros de material. Os materiais que já estão nela continuam iguais.' : 'Ela volta a aparecer nos cadastros de material.',
+        function () { return chamar('adminSetCategoriaAtiva', S.cod, c.nome, !c.ativa); })));
+    card.appendChild(form);
+    return card;
   }
   function quemCadastrou(por, em) { return (por || em) ? 'Cadastrado' + (por ? ' por ' + por : '') + (em ? ' em ' + fmtDT(em) : '') : 'Cadastrado direto na planilha'; }
   function botaoAtivo(ativo, nome, texto, acao) {
@@ -917,6 +1015,320 @@
         function () { return chamar('adminSetFornecedorAtivo', S.cod, f.id, !f.ativo); })));
     card.appendChild(form);
     return card;
+  }
+
+  // ---------- ajustes de saldo esperando o administrador principal ----------
+  function desenharAjustesPend() {
+    var box = $('aba-pend');
+    if (!S.ajustes.length) return;
+    box.appendChild(el('h3', { cls: 'sec-tit' }, ic('sliders-horizontal', 'h-4 w-4 text-amber-600'), 'Ajustes de saldo aguardando aprovação' + (S.principal ? '' : ' de ' + S.nomePrincipal)));
+    S.ajustes.forEach(function (a) { box.appendChild(cartaoAjustePend(a)); });
+  }
+  function cartaoAjustePend(a) {
+    var card = el('div', { cls: 'pedido ajuste-p' + (/\(usado\)$/.test(a.material) ? ' usado' : '') });
+    var sinal = a.delta > 0 ? '+' : '';
+    card.appendChild(el('div', { cls: 'topo' },
+      el('span', { cls: 'tipo ajuste' }, ic('sliders-horizontal', 'h-3.5 w-3.5'), a.tipo === 'Saldo inicial' ? 'Saldo inicial' : 'Recontagem'), el('span', { cls: 'pid', txt: a.id }),
+      el('span', { cls: 'chip hoje', txt: 'Aguardando ' + S.nomePrincipal })));
+    card.appendChild(el('div', { cls: 'nome-aj' }, nomeComTag(a.material)));
+    card.appendChild(el('div', { cls: 'meta' },
+      el('div', null, el('span', { txt: a.tipo === 'Saldo inicial' ? 'Saldo inicial pedido' : 'Contou' }), el('b', { txt: a.contagem + ' ' + a.un })),
+      el('div', null, el('span', { txt: 'Saldo quando pediu' }), el('b', { txt: a.antes + ' ' + a.un })),
+      el('div', null, el('span', { txt: 'Diferença' }), el('b', { cls: a.delta < 0 ? 'neg' : '', txt: sinal + a.delta + ' ' + a.un })),
+      el('div', null, el('span', { txt: 'Saldo agora → depois de aprovar' }), el('b', { txt: a.atual + ' → ' + a.depois + ' ' + a.un })),
+      el('div', null, el('span', { txt: 'Pedido por' }), el('b', { txt: a.solicitadoPor + ' · ' + fmtDT(a.solicitadoEm) }))));
+    card.appendChild(el('div', { cls: 'obs', txt: 'Motivo: ' + (a.motivo || '—') }));
+    if (a.antes !== a.atual) card.appendChild(el('div', { cls: 'nota', txt: 'O saldo mudou desde o pedido (entradas ou saídas no meio). Ao aprovar, entra só a diferença contada (' + sinal + a.delta + '), sem apagar esses movimentos.' }));
+    if (!S.principal) { card.appendChild(el('div', { cls: 'nota', txt: 'Só ' + S.nomePrincipal + ' (administrador principal) pode aprovar ou recusar.' })); return card; }
+    var erro = el('div', { cls: 'erro', role: 'alert' });
+    var aprovar = el('button', { cls: 'prim', type: 'button', onclick: function () {
+      confirmar({ titulo: 'Aprovar o ajuste ' + a.id + '?', texto: a.material + '\nO saldo vai de ' + a.atual + ' para ' + a.depois + ' ' + a.un + '. Fica no Histórico em nome de ' + a.solicitadoPor + ', aprovado por você.', ok: 'Aprovar' }).then(function (r) {
+        if (!r.ok) return;
+        aprovar.disabled = true;
+        chamar('adminAprovarAjuste', S.cod, a.id).then(function () { S.estSujo = true; S.histSujo = true; aviso('Ajuste ' + a.id + ' aprovado.'); recarregar(); })
+          .catch(function (e) { aprovar.disabled = false; erro.textContent = msg(e); });
+      });
+    } }, ic('check', 'h-4 w-4'), 'Aprovar ajuste');
+    var recusar = el('button', { cls: 'sec perigo', type: 'button', onclick: function () {
+      confirmar({ titulo: 'Recusar o ajuste ' + a.id + '?', texto: 'O saldo não muda. A recusa fica no Histórico.', campo: 'Motivo (opcional)', ok: 'Recusar' }).then(function (r) {
+        if (!r.ok) return;
+        chamar('adminRecusarAjuste', S.cod, a.id, r.valor).then(function () { S.estSujo = true; S.histSujo = true; aviso('Ajuste ' + a.id + ' recusado.'); recarregar(); })
+          .catch(function (e) { erro.textContent = msg(e); });
+      });
+    } }, ic('x', 'h-4 w-4'), 'Recusar');
+    card.appendChild(el('div', { cls: 'acoes' }, aprovar, recusar)); card.appendChild(erro);
+    return card;
+  }
+  /** Nome do material com a etiqueta vermelha USADO quando for o caso. */
+  function nomeComTag(nome, usado) {
+    var us = usado || /\(usado\)$/.test(nome || '');
+    var base = us ? String(nome).replace(/ \(usado\)$/, '') : nome;
+    return el('span', { cls: us ? 'txt-usado' : '' }, base, us ? el('span', { cls: 'tag-usado', txt: 'Usado' }) : null);
+  }
+
+  // ---------- nova requisição pelo painel ----------
+  var REQ = null;
+  function carregarReq() {
+    var box = $('aba-req');
+    if (REQ && !S.estSujo && S.est) { desenharReq(); return; }
+    box.innerHTML = ''; box.appendChild(el('div', { cls: 'vazio', txt: 'Carregando materiais...' }));
+    Promise.all([chamar('adminEstoque', S.cod), chamar('adminCadastros', S.cod), chamar('adminCategorias', S.cod)]).then(function (r) {
+      S.est = r[0]; S.estSujo = false;
+      var antigo = REQ || {};
+      REQ = { tipo: antigo.tipo || 'Retirada', origem: antigo.origem || 'Obra', obra: antigo.obra || '', forn: antigo.forn || '', data: antigo.data || S.hoje,
+        itens: antigo.itens || {}, usados: !!antigo.usados, q: antigo.q || '', etapa: antigo.etapa || 'aprovado', nf: antigo.nf || '', obs: antigo.obs || '',
+        cad: r[1], cats: r[2].filter(function (c) { return c.ativa; }).map(function (c) { return c.nome; }) };
+      desenharReq();
+    }).catch(function (e) { box.innerHTML = ''; box.appendChild(el('div', { cls: 'vazio erro', txt: msg(e) })); });
+  }
+  function matPorId(id) { return (S.est || []).filter(function (m) { return m.id === id; })[0]; }
+  function segmento(nome, opcoes, valor, mudou) {
+    var box = el('div', { cls: 'seg', role: 'radiogroup', 'aria-label': nome });
+    opcoes.forEach(function (o) {
+      box.appendChild(el('button', { cls: 'seg-op', type: 'button', role: 'radio', 'aria-checked': o[0] === valor ? 'true' : 'false', data: { v: o[0] }, onclick: function () { mudou(o[0]); } }, ic(o[2], 'h-4 w-4'), o[1]));
+    });
+    return box;
+  }
+  function desenharReq() {
+    var R = REQ, box = $('aba-req'), ret = R.tipo === 'Retirada', forn = !ret && R.origem === 'Fornecedor';
+    box.innerHTML = '';
+    var cartao = el('div', { cls: 'novo req' });
+    cartao.appendChild(el('p', { cls: 'nota', style: 'margin-top:0', txt: 'Crie uma retirada ou entrada em nome do galpão, inclusive com data passada (lançamento retroativo). A requisição fica com o seu nome como solicitante.' }));
+    cartao.appendChild(el('label', { txt: 'Tipo' }));
+    cartao.appendChild(segmento('Tipo', [['Retirada', 'Retirada do galpão', 'package-minus'], ['Entrada', 'Entrada no galpão', 'package-plus']], R.tipo, function (v) {
+      if (v !== R.tipo) { R.tipo = v; R.itens = {}; if (v === 'Retirada') R.origem = 'Obra'; desenharReq(); }
+    }));
+    if (!ret) {
+      cartao.appendChild(el('label', { txt: 'De onde vem o material?' }));
+      cartao.appendChild(segmento('Origem', [['Obra', 'De uma obra', 'building-2'], ['Fornecedor', 'De fornecedor', 'truck']], R.origem, function (v) { R.origem = v; desenharReq(); }));
+    }
+    var grade = el('div', { cls: 'grade2' });
+    // obra ou fornecedor
+    var local = el('div');
+    if (forn) {
+      var sf = el('select', { id: 'req-forn' }, opcao('', 'Escolha o fornecedor'));
+      R.cad.fornecedores.filter(function (f) { return f.ativo; }).forEach(function (f) { sf.appendChild(opcao(f.id, f.nome + ' — ' + f.cnpj)); });
+      sf.value = R.forn; sf.addEventListener('change', function () { R.forn = sf.value; });
+      local.appendChild(el('label', { for: 'req-forn', txt: 'Fornecedor' })); local.appendChild(sf);
+      local.appendChild(cadastroRapido('forn'));
+    } else {
+      var so = el('select', { id: 'req-obra' }, opcao('', 'Escolha a obra'));
+      R.cad.obras.filter(function (o) { return o.ativa; }).forEach(function (o) { so.appendChild(opcao(o.nome, o.nome)); });
+      so.value = R.obra; so.addEventListener('change', function () { R.obra = so.value; });
+      local.appendChild(el('label', { for: 'req-obra', txt: ret ? 'Obra de destino' : 'Obra de origem' })); local.appendChild(so);
+      local.appendChild(cadastroRapido('obra'));
+    }
+    grade.appendChild(local);
+    var data = el('input', { type: 'date', id: 'req-data', value: R.data });
+    data.addEventListener('change', function () { R.data = data.value; });
+    grade.appendChild(el('div', null, el('label', { for: 'req-data', txt: ret ? 'Data da retirada' : 'Data da entrada' }), data,
+      el('div', { cls: 'nota', style: 'margin:4px 0 0', txt: 'Pode ser uma data passada.' })));
+    cartao.appendChild(grade);
+    // etapa
+    cartao.appendChild(el('label', { txt: 'Como lançar' }));
+    var etapas = el('div', { cls: 'etapas' });
+    [['pendente', 'Deixar pendente', 'Vai para a aba Pendentes, para alguém aprovar.'], ['aprovado', 'Já aprovar', 'Fica em Aguardando baixa até o material sair/chegar.'],
+     ['concluido', 'Já registrar a baixa', 'O material já ' + (ret ? 'saiu' : 'entrou') + ' nessa data: o estoque muda na hora.']].forEach(function (e) {
+      var rd = el('input', { type: 'radio', name: 'req-etapa', value: e[0], id: 'req-et-' + e[0] }); if (R.etapa === e[0]) rd.checked = true;
+      rd.addEventListener('change', function () { R.etapa = e[0]; desenharReq(); });
+      etapas.appendChild(el('label', { cls: 'etapa', for: rd.id }, rd, el('span', null, el('b', { txt: e[1] }), el('span', { cls: 'nota', style: 'margin:0', txt: e[2] }))));
+    });
+    cartao.appendChild(etapas);
+    if (!ret && R.etapa === 'concluido') {
+      var nf = el('input', { type: 'text', id: 'req-nf', maxlength: '60', value: R.nf, placeholder: 'Opcional' }); nf.addEventListener('input', function () { R.nf = nf.value; });
+      cartao.appendChild(el('label', { for: 'req-nf', txt: 'Número da nota fiscal (as fotos podem ser anexadas depois, no Histórico)' })); cartao.appendChild(nf);
+    }
+    box.appendChild(cartao);
+    // materiais
+    var mats = el('div', { cls: 'novo req' });
+    mats.appendChild(el('h3', { style: 'margin:0', txt: 'Materiais' }));
+    var busca = el('input', { type: 'search', id: 'req-busca', placeholder: 'Buscar material (ex.: joelho 90 100)', autocomplete: 'off', value: R.q });
+    var chave = el('input', { type: 'checkbox', id: 'req-usados' }); chave.checked = R.usados;
+    mats.appendChild(el('div', { cls: 'req-busca' }, busca, el('label', { cls: 'chave-p', for: 'req-usados' }, chave, 'Incluir usados')));
+    var res = el('div', { cls: 'req-res' });
+    mats.appendChild(res);
+    mats.appendChild(cadastroRapido('mat'));
+    var sel = el('div', { cls: 'req-sel' });
+    mats.appendChild(el('h3', { txt: 'Itens da requisição' })); mats.appendChild(sel);
+    box.appendChild(mats);
+    var obs = el('input', { type: 'text', id: 'req-obs', maxlength: '300', value: R.obs, placeholder: 'Opcional' }); obs.addEventListener('input', function () { R.obs = obs.value; });
+    var erro = el('div', { cls: 'erro', role: 'alert' });
+    var criar = el('button', { cls: 'prim', type: 'button', id: 'req-criar', onclick: function () { criarReq(erro, criar); } }, ic('send', 'h-4 w-4'), 'Criar requisição');
+    box.appendChild(el('div', { cls: 'novo req' }, el('label', { for: 'req-obs', txt: 'Observação' }), obs, el('div', { cls: 'acoes' }, criar), erro));
+
+    function pintarRes() {
+      res.innerHTML = '';
+      var termos = semAcento(R.q).split(/\s+/).filter(Boolean);
+      if (!termos.length) { res.appendChild(el('div', { cls: 'nota', txt: 'Digite para buscar. ' + (ret ? 'Na retirada aparecem só materiais com saldo disponível.' : '') })); return; }
+      var achados = S.est.filter(function (m) {
+        if (!m.ativo || (m.us && !R.usados) || (ret && m.d <= 0)) return false;
+        var k = semAcento(m.n + ' ' + m.c + ' ' + m.id); return termos.every(function (t) { return k.indexOf(t) >= 0; });
+      });
+      achados.slice(0, 25).forEach(function (m) {
+        var q = el('input', { type: 'number', min: '1', step: '1', inputmode: 'numeric', value: String(R.itens[m.id] || 1), 'aria-label': 'Quantidade de ' + m.n });
+        var add = el('button', { cls: 'sec', type: 'button', onclick: function () {
+          var v = Math.floor(Number(q.value)); if (!(v > 0)) { aviso('Informe a quantidade.', true); return; }
+          if (ret && v > m.d) { aviso('Disponível de ' + m.n + ': ' + m.d + ' ' + m.u + '.', true); return; }
+          R.itens[m.id] = v; pintarSel(); aviso(m.n + (m.us ? ' (usado)' : '') + ': ' + v + ' ' + m.u + ' na requisição.');
+        } }, ic('plus', 'h-4 w-4'), R.itens[m.id] ? 'Atualizar' : 'Adicionar');
+        res.appendChild(el('div', { cls: 'req-item' + (m.us ? ' usado' : '') },
+          el('div', { cls: 'info' }, el('div', { cls: 'nome' }, nomeComTag(m.n, m.us)), el('div', { cls: 'cat', txt: m.c + ' · ' + m.id + ' · ' + (ret ? 'disponível: ' + m.d : 'no galpão: ' + m.f) + ' ' + m.u })),
+          q, add));
+      });
+      if (!achados.length) res.appendChild(el('div', { cls: 'vazio', txt: 'Nenhum material encontrado.' + (ret ? '' : ' Cadastre abaixo.') }));
+      if (achados.length > 25) res.appendChild(el('div', { cls: 'nota', txt: 'Mostrando 25 de ' + achados.length + '. Refine a busca.' }));
+    }
+    function pintarSel() {
+      sel.innerHTML = '';
+      var ids = Object.keys(R.itens);
+      if (!ids.length) { sel.appendChild(el('div', { cls: 'nota', txt: 'Nenhum material escolhido ainda.' })); return; }
+      ids.forEach(function (id) {
+        var m = matPorId(id); if (!m) { delete R.itens[id]; return; }
+        var q = el('input', { type: 'number', min: '1', step: '1', inputmode: 'numeric', value: String(R.itens[id]), 'aria-label': 'Quantidade de ' + m.n });
+        q.addEventListener('input', function () { var v = Math.floor(Number(q.value)); if (v > 0) R.itens[id] = v; });
+        var tirar = el('button', { cls: 'sec perigo', type: 'button', 'aria-label': 'Tirar ' + m.n, onclick: function () { delete R.itens[id]; pintarSel(); pintarRes(); } }, ic('trash-2', 'h-4 w-4'));
+        sel.appendChild(el('div', { cls: 'req-item' + (m.us ? ' usado' : '') }, el('div', { cls: 'info' }, el('div', { cls: 'nome' }, nomeComTag(m.n, m.us)), el('div', { cls: 'cat', txt: m.u + (ret ? ' · disponível: ' + m.d : '') })), q, tirar));
+      });
+    }
+    var t = null;
+    busca.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { R.q = busca.value; pintarRes(); }, 180); });
+    chave.addEventListener('change', function () { R.usados = chave.checked; pintarRes(); });
+    pintarRes(); pintarSel();
+    REQ.pintar = function () { pintarRes(); pintarSel(); };
+  }
+  /** Cadastro rápido dentro da requisição: obra, fornecedor ou material. */
+  function cadastroRapido(qual) {
+    var R = REQ, wrap = el('div');
+    var rotulo = { obra: 'Cadastrar obra nova', forn: 'Cadastrar fornecedor novo', mat: 'Cadastrar material novo' }[qual];
+    var abrir = el('button', { cls: 'link-p', type: 'button', onclick: function () { form.hidden = false; abrir.hidden = true; form.querySelector('input').focus(); } }, ic('plus', 'h-4 w-4'), rotulo);
+    var form = el('div', { cls: 'troca' }); form.hidden = true;
+    var erro = el('div', { cls: 'erro', role: 'alert' });
+    var fechar = el('button', { cls: 'sec', type: 'button', txt: 'Cancelar', onclick: function () { form.hidden = true; abrir.hidden = false; erro.textContent = ''; } });
+    var salvar;
+    if (qual === 'obra') {
+      var no = el('input', { type: 'text', maxlength: '100', id: 'rq-obra-nome', placeholder: 'Ex.: Residencial Mar Azul' });
+      form.appendChild(el('label', { for: no.id, txt: 'Nome da obra' })); form.appendChild(no);
+      salvar = el('button', { cls: 'prim', type: 'button', txt: 'Cadastrar obra', onclick: function () {
+        var nome = no.value.replace(/\s+/g, ' ').trim(), ja = R.cad.obras.filter(function (o) { return semAcento(o.nome) === semAcento(nome); })[0];
+        if (ja && ja.ativa) { R.obra = ja.nome; aviso('Essa obra já existia e foi escolhida.'); desenharReq(); return; }
+        salvar.disabled = true;
+        chamar('adminNovaObra', S.cod, nome).then(function (r) { R.cad.obras.push({ nome: r.obra, ativa: true }); R.obra = r.obra; S.cad = null; aviso('Obra ' + r.obra + ' cadastrada e escolhida.'); desenharReq(); })
+          .catch(function (e) { salvar.disabled = false; erro.textContent = msg(e); });
+      } });
+    } else if (qual === 'forn') {
+      var nf = el('input', { type: 'text', maxlength: '100', id: 'rq-forn-nome', placeholder: 'Ex.: Casa do Construtor Ltda' });
+      var cf = campoCnpj('rq-forn-cnpj');
+      form.appendChild(el('div', { cls: 'grade2' }, el('div', null, el('label', { for: nf.id, txt: 'Nome do fornecedor' }), nf), el('div', null, el('label', { for: cf.id, txt: 'CNPJ' }), cf)));
+      salvar = el('button', { cls: 'prim', type: 'button', txt: 'Cadastrar fornecedor', onclick: function () {
+        var ja = R.cad.fornecedores.filter(function (f) { return cnpjLimpo(f.cnpj) === cnpjLimpo(cf.value) && cnpjLimpo(cf.value); })[0];
+        if (ja && ja.ativo) { R.forn = ja.id; aviso('Esse CNPJ já estava cadastrado (' + ja.nome + ') e foi escolhido.'); desenharReq(); return; }
+        salvar.disabled = true;
+        chamar('adminNovoFornecedor', S.cod, nf.value, cf.value).then(function (r) { R.cad.fornecedores.push({ id: r.fornecedor.id, nome: r.fornecedor.nome, cnpj: r.fornecedor.cnpj, ativo: true }); R.forn = r.fornecedor.id; S.cad = null; aviso('Fornecedor cadastrado e escolhido.'); desenharReq(); })
+          .catch(function (e) { salvar.disabled = false; erro.textContent = msg(e); });
+      } });
+    } else {
+      var nm = el('input', { type: 'text', maxlength: '120', id: 'rq-mat-nome', placeholder: 'Ex.: Tubo PVC soldável 75 mm' });
+      var dl = el('datalist', { id: 'rq-mat-cats' }); R.cats.forEach(function (c) { dl.appendChild(el('option', { value: c })); });
+      var ct = el('input', { type: 'text', maxlength: '60', id: 'rq-mat-cat', list: 'rq-mat-cats', placeholder: 'Escolha ou digite' });
+      var un = el('select', { id: 'rq-mat-un' }); ['un', 'm', 'kg', 'L', 'pct', 'kit', 'rolo', 'par', 'cx'].forEach(function (u) { un.appendChild(opcao(u, u)); });
+      var us = el('input', { type: 'checkbox', id: 'rq-mat-usado' });
+      form.appendChild(dl);
+      form.appendChild(el('div', { cls: 'grade2' }, el('div', null, el('label', { for: nm.id, txt: 'Nome do material' }), nm), el('div', null, el('label', { for: ct.id, txt: 'Categoria' }), ct), el('div', null, el('label', { for: un.id, txt: 'Unidade' }), un)));
+      form.appendChild(el('label', { cls: 'mostrar', for: us.id }, us, 'É material usado (vai para a lista de usados)'));
+      salvar = el('button', { cls: 'prim', type: 'button', txt: 'Cadastrar material', onclick: function () {
+        salvar.disabled = true;
+        chamar('adminNovoMaterial', S.cod, nm.value, ct.value, un.value, 0, us.checked).then(function (r) {
+          S.est.push({ id: r.id, n: nm.value.replace(/\s+/g, ' ').trim(), c: ct.value.trim(), u: un.value, ativo: true, f: 0, r: 0, e: 0, d: 0, us: us.checked, base: '', aj: '' });
+          if (R.tipo === 'Entrada') R.itens[r.id] = 1;
+          if (us.checked) R.usados = true;
+          R.q = nm.value; S.estSujo = true; aviso('Material ' + r.id + ' cadastrado' + (R.tipo === 'Entrada' ? ' e incluído na requisição (1 ' + un.value + '). Ajuste a quantidade.' : '. Na retirada ele só aparece quando tiver saldo.'));
+          desenharReq();
+        }).catch(function (e) { salvar.disabled = false; erro.textContent = msg(e); });
+      } });
+    }
+    form.appendChild(el('div', { cls: 'acoes' }, salvar, fechar)); form.appendChild(erro);
+    wrap.appendChild(abrir); wrap.appendChild(form);
+    return wrap;
+  }
+  function criarReq(erro, btn) {
+    var R = REQ, ret = R.tipo === 'Retirada', forn = !ret && R.origem === 'Fornecedor';
+    var itens = Object.keys(R.itens).map(function (id) { return { id: id, qtd: R.itens[id] }; });
+    erro.textContent = '';
+    if (forn ? !R.forn : !R.obra) { erro.textContent = forn ? 'Escolha o fornecedor.' : 'Escolha a obra.'; return; }
+    if (!R.data) { erro.textContent = 'Informe a data.'; return; }
+    if (R.etapa === 'concluido' && R.data > S.hoje) { erro.textContent = 'Para registrar a baixa agora, a data não pode ser no futuro.'; return; }
+    if (!itens.length) { erro.textContent = 'Escolha ao menos um material.'; return; }
+    var local = forn ? { origem: 'Fornecedor', fornecedorId: R.forn } : R.obra;
+    var nomes = itens.map(function (i) { var m = matPorId(i.id); return '• ' + i.qtd + ' ' + m.u + ' ' + m.n + (m.us ? ' (usado)' : ''); }).join('\n');
+    var texto = { pendente: 'Vai para Pendentes, esperando aprovação.', aprovado: 'Fica aprovada, aguardando a baixa.', concluido: 'O estoque ' + (ret ? 'diminui' : 'aumenta') + ' agora, com data ' + fmtD(R.data) + '.' }[R.etapa];
+    confirmar({ titulo: 'Criar ' + (ret ? 'retirada' : 'entrada') + '?', texto: nomes + '\n\n' + texto, ok: 'Criar' }).then(function (c) {
+      if (!c.ok) return;
+      btn.disabled = true;
+      chamar('adminCriarPedido', S.cod, R.tipo, local, R.data, itens, R.obs, R.etapa, R.nf).then(function (r) {
+        aviso('Requisição ' + r.id + ' criada (' + r.status.toLowerCase() + ').');
+        R.itens = {}; R.obs = ''; R.nf = ''; R.q = ''; S.estSujo = true; S.histSujo = true;
+        recarregar();
+      }).catch(function (e) { btn.disabled = false; erro.textContent = msg(e); });
+    });
+  }
+
+  // ---------- relatório em Excel (.xlsx), montado no navegador ----------
+  var carregandoXLSX = null;
+  function carregarXLSX() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    if (carregandoXLSX) return carregandoXLSX;
+    carregandoXLSX = new Promise(function (ok, falha) {
+      var sc = document.createElement('script');
+      sc.src = 'https:' + '/' + '/cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      sc.onload = function () { if (window.XLSX) ok(window.XLSX); else falha(new Error('Não foi possível preparar o Excel.')); };
+      sc.onerror = function () { carregandoXLSX = null; falha(new Error('Não foi possível baixar o gerador de Excel. Confira a internet.')); };
+      document.head.appendChild(sc);
+    });
+    return carregandoXLSX;
+  }
+  function tabelaExcel(r) {
+    var br = function (iso) { return fmtD(iso); };
+    if (r.modelo === 'posicao') {
+      return { aba: r.tipo === 'Completo' ? 'Estoque completo' : 'Disponível',
+        cab: ['Código', 'Material', 'Categoria', 'Unidade', 'Condição', 'Situação', 'No galpão', 'Reservado (a retirar)', 'A chegar', 'Disponível'],
+        linhas: r.linhas.map(function (l) { return [l.mid, l.material, l.categoria, l.un, l.usado ? 'Usado' : 'Novo', l.oculto ? 'Oculto' : 'Ativo', l.fis, l.aRet, l.aEnt, l.disp]; }) };
+    }
+    if (r.modelo === 'programado') {
+      return { aba: r.tipo === 'AChegar' ? 'A chegar' : 'A retirar',
+        cab: ['Data programada', 'Pedido', 'Material', 'Quantidade', 'Unidade', 'Solicitante', r.tipo === 'AChegar' ? 'Origem' : 'Obra de destino', 'CNPJ', 'Situação', 'Aprovado por', 'Atrasado'],
+        linhas: r.linhas.map(function (l) { return [br(l.data), l.pedido, l.material, l.qtd, l.un, l.solicitante, l.obra, l.cnpj || '', l.status === 'Pendente' ? 'Pendente de aprovação' : 'Aprovado', l.aprovadoPor || '', l.atrasado ? 'Sim' : '']; }) };
+    }
+    var ret = r.tipo === 'Retirada';
+    return { aba: ret ? 'Retiradas' : 'Entradas',
+      cab: ['Data', 'Pedido', 'Material', 'Quantidade', 'Unidade', 'Solicitante', ret ? 'Obra de destino' : 'Origem'].concat(ret ? [] : ['CNPJ', 'Nota fiscal'], ['Baixa por']),
+      linhas: r.linhas.map(function (l) { return [br(l.data), l.pedido, l.material, l.qtd, l.un, l.solicitante, l.obra].concat(ret ? [] : [l.cnpj || '', l.nf || ''], [l.baixaPor]); }) };
+  }
+  function nomeArquivoRel(r) {
+    var base = { Retirada: 'Retiradas', Entrada: 'Entradas', Disponivel: 'Estoque_disponivel', Completo: 'Estoque_completo', AChegar: 'A_chegar', ARetirar: 'A_retirar' }[r.tipo] || 'Relatorio';
+    return 'Relatorio_' + base + (r.agrupar === 'obra' ? '_por_obra' : (r.agrupar === 'categoria' ? '_por_categoria' : '')) + (r.modelo === 'movimento' ? '_' + r.de + '_a_' + r.ate : '_' + S.hoje) + '.xlsx';
+  }
+  function baixarExcel(r) {
+    return carregarXLSX().then(function (X) {
+      var t = tabelaExcel(r), wb = X.utils.book_new();
+      var ws = X.utils.aoa_to_sheet([t.cab].concat(t.linhas));
+      ws['!cols'] = t.cab.map(function (c, i) {
+        var maior = t.linhas.reduce(function (a, l) { return Math.max(a, String(l[i] === undefined ? '' : l[i]).length); }, c.length);
+        return { wch: Math.min(60, Math.max(8, maior + 2)) };
+      });
+      ws['!autofilter'] = { ref: X.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: t.linhas.length, c: t.cab.length - 1 } }) };
+      X.utils.book_append_sheet(wb, ws, t.aba);
+      if (r.resumo && r.resumo.length) {
+        var rs = X.utils.aoa_to_sheet([['Material', 'Quantidade total', 'Unidade', 'Lançamentos']].concat(r.resumo.map(function (x) { return [x.material, x.qtd, x.un, x.lancamentos]; })));
+        rs['!cols'] = [{ wch: 60 }, { wch: 16 }, { wch: 9 }, { wch: 12 }];
+        X.utils.book_append_sheet(wb, rs, 'Resumo por material');
+      }
+      var sobre = X.utils.aoa_to_sheet([['Relatório', r.titulo], ['Período', r.periodo], ['Gerado em', fmtDT(r.geradoEm)], ['Gerado por', r.geradoPor], ['Linhas', t.linhas.length]]);
+      sobre['!cols'] = [{ wch: 14 }, { wch: 70 }];
+      X.utils.book_append_sheet(wb, sobre, 'Sobre');
+      var nome = nomeArquivoRel(r);
+      X.writeFile(wb, nome);
+      return nome;
+    });
   }
 
   // ---------- histórico ----------
@@ -987,7 +1399,7 @@
     $('h-info').textContent = r.total === 0 ? 'Nenhum resultado.' : (r.total + (r.total === 1 ? ' resultado' : ' resultados') + (r.itens.length < r.total ? ' (mostrando os ' + r.itens.length + ' mais recentes)' : ''));
     $('h-mais').hidden = r.itens.length >= r.total;
     if (!r.itens.length) { l.appendChild(el('div', { cls: 'vazio', txt: 'Nada encontrado com esses filtros.' })); return; }
-    r.itens.forEach(function (p) { l.appendChild(p.kind === 'ajuste' ? cartaoAjuste(p) : cartaoHistorico(p)); });
+    r.itens.forEach(function (p) { l.appendChild(p.kind === 'ajuste' ? cartaoAjuste(p) : (p.kind === 'ajusteRec' ? cartaoAjusteRec(p) : cartaoHistorico(p))); });
   }
   function cartaoAjuste(a) {
     var sinal = a.delta > 0 ? '+' : '';
@@ -995,7 +1407,13 @@
       el('div', { cls: 'topo' }, el('span', { cls: 'tipo ajuste' }, ic('sliders-horizontal', 'h-3.5 w-3.5'), 'Ajuste de saldo'), el('b', { txt: a.material })),
       el('div', { cls: 'mov' + (a.delta < 0 ? ' neg' : ''), txt: a.antes + ' → ' + a.depois + ' ' + a.un + '  (' + sinal + a.delta + ')' }),
       el('div', { txt: 'Motivo: ' + (a.motivo || '—') }),
-      el('div', { cls: 'quem2', txt: 'Ajustado por ' + (a.por || '(não informado)') + ' · ' + fmtDT(a.quando) }));
+      el('div', { cls: 'quem2', txt: 'Ajustado por ' + (a.por || '(não informado)') + (a.aprovadoPor ? ' · aprovado por ' + a.aprovadoPor : '') + ' · ' + fmtDT(a.quando) }));
+  }
+  function cartaoAjusteRec(a) {
+    return el('div', { cls: 'aj rec' },
+      el('div', { cls: 'topo' }, el('span', { cls: 'tipo ajuste' }, ic('ban', 'h-3.5 w-3.5'), 'Ajuste recusado'), el('b', { txt: a.material }), el('span', { cls: 'muted', txt: a.id })),
+      el('div', { txt: 'Pediu para mudar de ' + a.antes + ' para ' + a.contagem + ' ' + a.un + '. Motivo: ' + (a.motivo || '—') }),
+      el('div', { cls: 'quem2', txt: 'Pedido por ' + (a.por || '—') + ' · recusado por ' + (a.recusadoPor || '—') + (a.obsDecisao ? ': ' + a.obsDecisao : '') + ' · ' + fmtDT(a.quando) }));
   }
   function cartaoHistorico(p) {
     var ret = p.tipo === 'Retirada';
@@ -1009,7 +1427,7 @@
     cabecalhoPedido(p).slice(1).forEach(function (n) { if (n) corpo.appendChild(n); });
     corpo.appendChild(el('div', { cls: 'il cab' }, el('div', { txt: 'Material' }), el('div', { cls: 'c', txt: 'Pedido' }), el('div', { cls: 'c', txt: 'Aprovado' }), el('div', { cls: 'c', txt: 'Real' })));
     p.itens.forEach(function (i) {
-      corpo.appendChild(el('div', { cls: 'il' }, el('div', { cls: 'nome', txt: i.nome }),
+      corpo.appendChild(el('div', { cls: 'il' }, el('div', { cls: 'nome' }, nomeComTag(i.nome, i.usado)),
         celula('Pedido', i.solic + ' ' + i.un), celula('Aprovado', i.aprov === null ? '—' : i.aprov + ' ' + i.un), celula('Real', i.real === null ? '—' : i.real + ' ' + i.un)));
     });
     if (!ret && p.status === 'Concluído') {
@@ -1023,10 +1441,11 @@
   var MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
   var montouR = false;
   function carregarRelatorios() { if (!montouR) montarRelatorios(); }
-  var TIPOS_POSICAO = { Disponivel: 1, AChegar: 1, ARetirar: 1 };
+  var TIPOS_POSICAO = { Disponivel: 1, Completo: 1, AChegar: 1, ARetirar: 1 };
   var NOTAS_REL = {
     Retirada: 'Só entram os lançamentos já confirmados na baixa, com a quantidade e a data reais. Pedidos pendentes ou aprovados sem baixa não aparecem.',
     Entrada: 'Só entram os lançamentos já confirmados na baixa, com a quantidade e a data reais. Pedidos pendentes ou aprovados sem baixa não aparecem.',
+    Completo: 'Todos os materiais cadastrados, novos e usados, com saldo no galpão, reservado, a chegar e disponível. Bom para estudo e conferência; também sai em Excel.',
     Disponivel: 'Mostra a situação de agora: o que está no galpão menos o que já foi reservado em retiradas aprovadas. Materiais com todo o saldo reservado não aparecem.',
     AChegar: 'Entradas aprovadas que ainda não receberam baixa: o material ainda não chegou ao galpão. Datas vencidas aparecem em vermelho.',
     ARetirar: 'Retiradas aprovadas que ainda não receberam baixa: o material ainda está no galpão, mas já reservado. Datas vencidas aparecem em vermelho.'
@@ -1036,7 +1455,7 @@
     var hj = S.hoje.split('-');
     var tipo = el('select', { id: 'r-tipo' },
       el('optgroup', { label: 'O que já aconteceu (baixas)' }, opcao('Retirada', 'Retiradas (saídas do galpão)'), opcao('Entrada', 'Entradas (recebidos no galpão)')),
-      el('optgroup', { label: 'Situação de agora' }, opcao('Disponivel', 'Estoque disponível'), opcao('AChegar', 'Materiais a chegar'), opcao('ARetirar', 'Programados para retirada')));
+      el('optgroup', { label: 'Situação de agora' }, opcao('Completo', 'Estoque completo (todos os materiais)'), opcao('Disponivel', 'Estoque disponível'), opcao('AChegar', 'Materiais a chegar'), opcao('ARetirar', 'Programados para retirada')));
     var agr = el('select', { id: 'r-agr' });
     var modo = el('select', { id: 'r-modo' });
     var mes = el('select', { id: 'r-mes' }); MESES.forEach(function (n, i) { mes.appendChild(opcao(String(i + 1), n)); }); mes.value = String(Number(hj[1]));
@@ -1053,6 +1472,11 @@
     var cCat = el('div', null, el('label', { for: 'r-cat', txt: 'Categoria' }), cat);
     var cModo = el('div', null, el('label', { for: 'r-modo', txt: 'Período' }), modo);
     var cPend = el('div', { style: 'grid-column:1/-1' }, el('label', { cls: 'mostrar', for: 'r-pend' }, chkPend, 'Incluir também os pedidos que ainda não foram aprovados'));
+    var cond = el('select', { id: 'r-cond' }, opcao('', 'Novos e usados'), opcao('novo', 'Só novos'), opcao('usado', 'Só usados'));
+    var cCond = el('div', null, el('label', { for: 'r-cond', txt: 'Condição' }), cond);
+    var chkZer = el('input', { type: 'checkbox', id: 'r-zer' }); chkZer.checked = true;
+    var chkOcu = el('input', { type: 'checkbox', id: 'r-ocu' });
+    var cComp = el('div', { style: 'grid-column:1/-1', cls: 'flex flex-wrap gap-x-5' }, el('label', { cls: 'mostrar', for: 'r-zer' }, chkZer, 'Incluir materiais sem saldo'), el('label', { cls: 'mostrar', for: 'r-ocu' }, chkOcu, 'Incluir materiais ocultos'));
     var nota = el('div', { cls: 'nota' });
     var erro = el('div', { cls: 'erro', role: 'alert' });
     var catsCarregadas = false;
@@ -1060,8 +1484,9 @@
     function opcoes(sel, lista, manter) { var v = sel.value; sel.innerHTML = ''; lista.forEach(function (p) { sel.appendChild(opcao(p[0], p[1])); }); if (manter && lista.some(function (p) { return p[0] === v; })) sel.value = v; }
     var tipoAnt = '', posAnt = null;
     function ajustar() {
-      var t = tipo.value, pos = !!TIPOS_POSICAO[t], disp = t === 'Disponivel';
-      opcoes(agr, disp ? [['lista', 'Em ordem alfabética'], ['categoria', 'Agrupado por categoria']] : [['data', 'Em ordem de data'], ['obra', 'Agrupado por obra']], tipoAnt === 'Disponivel' === disp);
+      var t = tipo.value, pos = !!TIPOS_POSICAO[t], disp = t === 'Disponivel' || t === 'Completo';
+      opcoes(agr, disp ? [['lista', 'Em ordem alfabética'], ['categoria', 'Agrupado por categoria']] : [['data', 'Em ordem de data'], ['obra', 'Agrupado por obra']], (tipoAnt === 'Disponivel' || tipoAnt === 'Completo') === disp);
+      cCond.hidden = !disp; cComp.hidden = t !== 'Completo';
       opcoes(modo, pos ? [['todos', 'Todas as datas programadas'], ['mes', 'Um mês'], ['int', 'Intervalo de datas']] : [['mes', 'Um mês'], ['int', 'Intervalo de datas']], posAnt === pos);
       tipoAnt = t; posAnt = pos;
       cObra.hidden = disp; cCat.hidden = !disp; cModo.hidden = disp; cPend.hidden = disp || !pos;
@@ -1077,7 +1502,7 @@
     modo.addEventListener('change', function () { blocoMes.hidden = modo.value !== 'mes'; blocoInt.hidden = modo.value !== 'int'; });
     var gerar = el('button', { cls: 'prim', type: 'button', id: 'r-gerar', txt: 'Gerar relatório', onclick: function () {
       var t = tipo.value, pos = !!TIPOS_POSICAO[t], f = { tipo: t, agrupar: agr.value };
-      if (t === 'Disponivel') { f.categoria = cat.value; }
+      if (t === 'Disponivel' || t === 'Completo') { f.categoria = cat.value; f.condicao = cond.value; if (t === 'Completo') { f.zerados = chkZer.checked; f.ocultos = chkOcu.checked; } }
       else {
         f.obra = obra.value;
         if (pos) f.pendentes = chkPend.checked;
@@ -1099,8 +1524,8 @@
       el('div', { cls: 'grade' },
         el('div', null, el('label', { for: 'r-tipo', txt: 'Relatório de' }), tipo),
         el('div', null, el('label', { for: 'r-agr', txt: 'Organizar' }), agr),
-        cObra, cCat, cModo),
-      blocoMes, blocoInt, cPend,
+        cObra, cCat, cCond, cModo),
+      blocoMes, blocoInt, cPend, cComp,
       el('div', { cls: 'acoes' }, gerar), erro, nota));
     box.appendChild(el('div', { id: 'r-res' }));
     ajustar();
@@ -1130,13 +1555,15 @@
     });
     return el('div', { cls: 'tabela-wrap' }, el('table', { cls: 'rel' }, el('thead', null, tr), tb));
   }
-  function tabelaDisp(linhas, mostrarCat) {
-    var cab = (mostrarCat ? ['Categoria'] : []).concat(['Material', 'No galpão', 'Reservado (a retirar)', 'A chegar', 'Disponível']);
+  function tabelaDisp(linhas, mostrarCat, comp) {
+    var cab = (comp ? ['Código'] : []).concat(mostrarCat ? ['Categoria'] : [], ['Material'], comp ? ['Condição'] : [], ['No galpão', 'Reservado (a retirar)', 'A chegar', 'Disponível']);
     var tr = el('tr'); cab.forEach(function (c) { tr.appendChild(el('th', { txt: c })); });
     var tb = el('tbody');
     linhas.forEach(function (l) {
-      var r = el('tr'); if (mostrarCat) r.appendChild(el('td', { txt: l.categoria }));
-      r.appendChild(el('td', { txt: l.material + (l.oculto ? ' (oculto)' : '') })); r.appendChild(el('td', { cls: 'n', txt: l.fis + ' ' + l.un }));
+      var r = el('tr'); if (comp) r.appendChild(el('td', { cls: 'n', txt: l.mid })); if (mostrarCat) r.appendChild(el('td', { txt: l.categoria }));
+      r.appendChild(el('td', null, nomeComTag(l.material, l.usado), l.oculto ? ' (oculto)' : null));
+      if (comp) r.appendChild(el('td', { cls: l.usado ? 'usado-l' : '', txt: l.usado ? 'Usado' : 'Novo' }));
+      r.appendChild(el('td', { cls: 'n', txt: l.fis + ' ' + l.un }));
       r.appendChild(el('td', { cls: 'n', txt: String(l.aRet) })); r.appendChild(el('td', { cls: 'n', txt: String(l.aEnt) })); r.appendChild(el('td', { cls: 'n', style: 'font-weight:700', txt: l.disp + ' ' + l.un })); tb.appendChild(r);
     });
     return el('div', { cls: 'tabela-wrap' }, el('table', { cls: 'rel' }, el('thead', null, tr), tb));
@@ -1151,13 +1578,17 @@
     papel.appendChild(el('h2', { txt: r.titulo }));
     if (r.modelo === 'posicao') {
       papel.appendChild(el('div', null, el('b', { txt: r.periodo }), r.categoria ? ' · Categoria: ' : ' · Todas as categorias', r.categoria ? el('b', { txt: r.categoria }) : null));
-      papel.appendChild(el('div', { cls: 'rel-totais' }, el('b', { txt: String(r.totais.materiais) }), ' material(is) disponível(is) · ', el('b', { txt: String(r.totais.categorias) }), ' categoria(s)',
-        r.totais.reservados ? ' · ' + r.totais.reservados + ' com todo o saldo já reservado (não listado)' : null));
-      if (!r.linhas.length) papel.appendChild(el('div', { cls: 'vazio', txt: 'Nenhum material disponível com os filtros escolhidos.' }));
+      var comp = r.tipo === 'Completo';
+      papel.appendChild(comp
+        ? el('div', { cls: 'rel-totais' }, el('b', { txt: String(r.totais.materiais) }), ' material(is) · ', el('b', { txt: String(r.totais.comSaldo) }), ' com saldo · ', el('b', { txt: String(r.totais.zerados) }), ' sem saldo · ',
+            el('b', { txt: String(r.totais.usados) }), ' usado(s) · ', el('b', { txt: String(r.totais.categorias) }), ' categoria(s)')
+        : el('div', { cls: 'rel-totais' }, el('b', { txt: String(r.totais.materiais) }), ' material(is) disponível(is) · ', el('b', { txt: String(r.totais.categorias) }), ' categoria(s)',
+            r.totais.reservados ? ' · ' + r.totais.reservados + ' com todo o saldo já reservado (não listado)' : null));
+      if (!r.linhas.length) papel.appendChild(el('div', { cls: 'vazio', txt: 'Nenhum material com os filtros escolhidos.' }));
       else if (r.agrupar === 'categoria') r.grupos.forEach(function (g) {
-        papel.appendChild(el('h3', { txt: g.categoria })); papel.appendChild(el('div', { cls: 'nota', txt: g.linhas.length + ' material(is)' })); papel.appendChild(tabelaDisp(g.linhas, false));
+        papel.appendChild(el('h3', { txt: g.categoria })); papel.appendChild(el('div', { cls: 'nota', txt: g.linhas.length + ' material(is)' })); papel.appendChild(tabelaDisp(g.linhas, false, comp));
       });
-      else papel.appendChild(tabelaDisp(r.linhas, true));
+      else papel.appendChild(tabelaDisp(r.linhas, true, comp));
     } else if (r.modelo === 'programado') {
       var ent = r.tipo === 'AChegar';
       papel.appendChild(el('div', null, 'Datas programadas: ', el('b', { txt: r.periodo }), r.obra ? ' · Obra: ' : ' · Todas as obras', r.obra ? el('b', { txt: r.obra }) : null, r.pendentes ? ' · Inclui pedidos ainda não aprovados' : null));
@@ -1199,8 +1630,12 @@
       }).catch(function (e) { erro.textContent = msg(e); })
         .then(function () { pdf.disabled = false; pdf.textContent = 'Baixar PDF'; });
     } });
+    var xls = el('button', { cls: 'sec', type: 'button', id: 'r-xlsx', onclick: function () {
+      xls.disabled = true; erro.textContent = '';
+      baixarExcel(S.rel.dados).then(function (nome) { aviso('Excel gerado: ' + nome); }).catch(function (e) { erro.textContent = msg(e); }).then(function () { xls.disabled = false; });
+    } }, ic('sheet', 'h-4 w-4'), 'Baixar Excel');
     var imp = el('button', { cls: 'sec', type: 'button', txt: 'Imprimir', onclick: function () { window.print(); } });
-    res.appendChild(el('div', { cls: 'rel-acoes' }, pdf, imp)); res.appendChild(erro);
+    res.appendChild(el('div', { cls: 'rel-acoes' }, pdf, xls, imp)); res.appendChild(erro);
   }
 
   // ---------- administradores ----------
@@ -1402,8 +1837,9 @@
     var box = $('aba-est');
     if (S.est && !S.estSujo) { desenharEstoque(); return; }
     box.innerHTML = ''; box.appendChild(el('div', { cls: 'vazio', txt: 'Carregando estoque...' }));
-    chamar('adminEstoque', S.cod).then(function (lista) { S.est = lista; S.estSujo = false; desenharEstoque(); })
-      .catch(function (e) { box.innerHTML = ''; box.appendChild(el('div', { cls: 'vazio erro', txt: msg(e) })); });
+    Promise.all([chamar('adminEstoque', S.cod), chamar('adminCategorias', S.cod)]).then(function (r) {
+      S.est = r[0]; S.estSujo = false; S.cats = r[1].filter(function (c) { return c.ativa; }).map(function (c) { return c.nome; }); desenharEstoque();
+    }).catch(function (e) { box.innerHTML = ''; box.appendChild(el('div', { cls: 'vazio erro', txt: msg(e) })); });
   }
   function desenharEstoque() {
     var box = $('aba-est'); box.innerHTML = '';
@@ -1413,12 +1849,12 @@
     var cat = el('select', { 'aria-label': 'Categoria' }, el('option', { value: '', txt: 'Todas as categorias' }));
     Object.keys(cats).forEach(function (c) { var o = el('option', { value: c, txt: c }); if (c === f.cat) o.selected = true; cat.appendChild(o); });
     var modo = el('select', { 'aria-label': 'Filtro' });
-    [['ativos', 'Materiais ativos'], ['saldo', 'Com saldo'], ['zerados', 'Sem saldo'], ['mov', 'Com reserva ou em trânsito'], ['ocultos', 'Ocultos']].forEach(function (p) {
+    [['ativos', 'Materiais ativos'], ['saldo', 'Com saldo'], ['zerados', 'Sem saldo'], ['mov', 'Com reserva ou em trânsito'], ['usados', 'Só usados'], ['novos', 'Só novos'], ['pendaj', 'Com ajuste pendente'], ['ocultos', 'Ocultos']].forEach(function (p) {
       var o = el('option', { value: p[0], txt: p[1] }); if (p[0] === f.modo) o.selected = true; modo.appendChild(o);
     });
     var novo = el('button', { cls: 'sec', type: 'button', txt: '+ Novo material', onclick: function () { formNovo.hidden = !formNovo.hidden; if (!formNovo.hidden) formNovo.querySelector('input').focus(); } });
     box.appendChild(el('div', { cls: 'barra' }, busca, cat, modo, novo));
-    var formNovo = formularioNovo(Object.keys(cats)); formNovo.hidden = true; box.appendChild(formNovo);
+    var formNovo = formularioNovo(S.cats.length ? S.cats : Object.keys(cats)); formNovo.hidden = true; box.appendChild(formNovo);
     var info = el('div', { cls: 'nota' }); box.appendChild(info);
     var lista = el('div'); box.appendChild(lista);
     var mais = el('button', { cls: 'sec', type: 'button', txt: 'Mostrar mais', style: 'width:100%' }); box.appendChild(mais);
@@ -1427,6 +1863,9 @@
       var termos = semAcento(f.q).split(/\s+/).filter(Boolean);
       var vis = S.est.filter(function (m) {
         if (f.modo === 'ocultos' ? m.ativo : !m.ativo) return false;
+        if (f.modo === 'usados' && !m.us) return false;
+        if (f.modo === 'novos' && m.us) return false;
+        if (f.modo === 'pendaj' && !m.aj) return false;
         if (f.cat && m.c !== f.cat) return false;
         if (f.modo === 'saldo' && !(m.f > 0)) return false;
         if (f.modo === 'zerados' && m.f !== 0) return false;
@@ -1450,12 +1889,14 @@
   }
   function num(rot, v, neg) { return el('div', { cls: neg ? 'neg' : '' }, el('span', { txt: rot }), el('b', { txt: String(v) })); }
   function linhaEstoque(m) {
-    var card = el('div', { cls: 'mat' + (m.ativo ? '' : ' oculto') });
+    var card = el('div', { cls: 'mat' + (m.ativo ? '' : ' oculto') + (m.us ? ' usado' : '') });
     card.appendChild(el('div', { cls: 'l1' },
-      el('div', null, el('div', { cls: 'nome', txt: m.n }), el('div', { cls: 'cat', txt: m.c + ' · ' + m.u + ' · ' + m.id })),
+      el('div', null, el('div', { cls: 'nome' }, nomeComTag(m.n, m.us)), el('div', { cls: 'cat', txt: m.c + ' · ' + m.u + ' · ' + m.id }),
+        m.aj ? el('span', { cls: 'chip pend-aj', style: 'margin-top:6px', txt: 'Ajuste ' + m.aj + ' aguardando ' + (S.nomePrincipal || 'o principal') }) : null),
       el('div', { cls: 'nums' }, num('No galpão', m.f, m.f < 0), num('A retirar', m.r), num('A entrar', m.e), num('Disponível', m.d, m.d < 0))));
     var area = el('div'); area.hidden = true;
     var ajustar = el('button', { cls: 'sec', type: 'button', txt: 'Ajustar saldo', onclick: function () { area.hidden = !area.hidden; if (!area.hidden) area.querySelector('input').focus(); } });
+    if (m.aj) { ajustar.disabled = true; ajustar.title = 'Já existe um ajuste esperando aprovação para este material.'; }
     var ocultar = el('button', { cls: 'sec', type: 'button', txt: m.ativo ? 'Ocultar' : 'Reativar', onclick: function () {
       chamar('adminAtivar', S.cod, m.id, !m.ativo).then(function () { m.ativo = !m.ativo; desenharEstoque(); aviso(m.ativo ? 'Material reativado.' : 'Material oculto dos pedidos.'); })
         .catch(function (e) { aviso(msg(e), true); });
@@ -1466,10 +1907,12 @@
     var erro = el('div', { cls: 'erro', role: 'alert' });
     var salvar = el('button', { cls: 'prim', type: 'button', txt: 'Salvar ajuste', disabled: 'disabled', onclick: function () {
       var novo = Number(cont.value), delta = novo - m.f;
-      confirmar({ titulo: 'Ajustar o saldo?', texto: m.n + '\nDe ' + m.f + ' para ' + novo + ' ' + m.u + ' (' + (delta > 0 ? '+' : '') + delta + ').\nFica no Histórico em nome de ' + S.admin + ', com o motivo informado.', ok: 'Ajustar' }).then(function (c) {
+      var txt = S.principal ? 'Fica no Histórico em nome de ' + S.admin + ', com o motivo informado.' : 'O ajuste vai para a aprovação de ' + S.nomePrincipal + ' (administrador principal). O saldo só muda depois que ele aprovar.';
+      confirmar({ titulo: S.principal ? 'Ajustar o saldo?' : 'Pedir ajuste de saldo?', texto: m.n + '\nDe ' + m.f + ' para ' + novo + ' ' + m.u + ' (' + (delta > 0 ? '+' : '') + delta + ').\n' + txt, ok: S.principal ? 'Ajustar' : 'Enviar para aprovação' }).then(function (c) {
         if (!c.ok) return;
         salvar.disabled = true; erro.textContent = '';
         chamar('adminAjustar', S.cod, m.id, novo, motivo.value).then(function (r) {
+          if (r.pendente) { m.aj = r.id; aviso('Ajuste ' + r.id + ' enviado para aprovação de ' + S.nomePrincipal + '.'); desenharEstoque(); recarregar(); return; }
           m.f = r.f; m.d = r.d; S.histSujo = true; aviso('Saldo ajustado para ' + r.f + ' ' + m.u + '.'); desenharEstoque();
         }).catch(function (e) { salvar.disabled = false; erro.textContent = msg(e); });
       });
@@ -1480,30 +1923,48 @@
     area.appendChild(el('div', { cls: 'grade2' },
       el('div', null, el('label', { txt: 'Contagem real no galpão (' + m.u + ')' }), cont),
       el('div', null, el('label', { txt: 'Motivo do ajuste (obrigatório)' }), motivo)));
-    area.appendChild(el('div', { cls: 'nota', txt: 'O ajuste fica registrado no Histórico com o seu nome e o motivo.' }));
+    area.appendChild(el('div', { cls: 'nota', txt: S.principal ? 'O ajuste fica registrado no Histórico com o seu nome e o motivo.' : 'O ajuste vai para a aprovação de ' + S.nomePrincipal + '. Fica registrado com o seu nome e o motivo.' }));
     area.appendChild(el('div', { cls: 'acoes' }, salvar)); area.appendChild(erro);
     card.appendChild(area);
     return card;
   }
   function formularioNovo(cats) {
-    var nome = el('input', { type: 'text', maxlength: '120', 'aria-label': 'Nome do material' });
+    var nome = el('input', { type: 'text', maxlength: '120', 'aria-label': 'Nome do material', id: 'nm-nome' });
     var dl = el('datalist', { id: 'lista-cats' }); cats.forEach(function (c) { dl.appendChild(el('option', { value: c })); });
-    var cat = el('input', { type: 'text', maxlength: '60', list: 'lista-cats', 'aria-label': 'Categoria' });
-    var un = el('select', { 'aria-label': 'Unidade' }); ['un', 'm', 'kg', 'L', 'pct', 'kit', 'rolo', 'par', 'cx'].forEach(function (u) { un.appendChild(el('option', { value: u, txt: u })); });
-    var qtd = el('input', { type: 'number', min: '0', step: '1', inputmode: 'numeric', value: '0', 'aria-label': 'Quantidade inicial' });
+    var cat = el('input', { type: 'text', maxlength: '60', list: 'lista-cats', 'aria-label': 'Categoria', id: 'nm-cat', placeholder: 'Escolha ou digite uma nova' });
+    var un = el('select', { 'aria-label': 'Unidade', id: 'nm-un' }); ['un', 'm', 'kg', 'L', 'pct', 'kit', 'rolo', 'par', 'cx'].forEach(function (u) { un.appendChild(el('option', { value: u, txt: u })); });
+    var qtd = el('input', { type: 'number', min: '0', step: '1', inputmode: 'numeric', value: '0', 'aria-label': 'Quantidade inicial', id: 'nm-qtd' });
+    var usado = el('input', { type: 'checkbox', id: 'nm-usado' });
+    var dlN = el('datalist', { id: 'lista-novos' }); (S.est || []).filter(function (m) { return !m.us && m.ativo; }).forEach(function (m) { dlN.appendChild(el('option', { value: m.n })); });
+    var base = el('input', { type: 'text', list: 'lista-novos', id: 'nm-base', maxlength: '120', placeholder: 'Comece a digitar e escolha da lista (opcional)', 'aria-label': 'Descrição de um material novo' });
+    var blocoBase = el('div', { style: 'grid-column:1/-1' }, el('label', { for: 'nm-base', txt: 'Usar a descrição de um material novo já cadastrado' }), base,
+      el('div', { cls: 'nota', style: 'margin:4px 0 0', txt: 'Copia nome, categoria e unidade. O saldo do usado é separado do saldo do novo.' }));
+    blocoBase.hidden = true;
+    var baseId = '';
+    function travar(v) { nome.disabled = v; cat.disabled = v; un.disabled = v; }
+    usado.addEventListener('change', function () { blocoBase.hidden = !usado.checked; if (!usado.checked) { base.value = ''; baseId = ''; travar(false); } });
+    base.addEventListener('input', function () {
+      var m = (S.est || []).filter(function (x) { return !x.us && x.n === base.value; })[0];
+      baseId = m ? m.id : '';
+      if (m) { nome.value = m.n; cat.value = m.c; un.value = m.u; travar(true); } else travar(false);
+    });
     var erro = el('div', { cls: 'erro', role: 'alert' });
     var ok = el('button', { cls: 'prim', type: 'button', txt: 'Cadastrar material', onclick: function () {
       ok.disabled = true; erro.textContent = '';
-      chamar('adminNovoMaterial', S.cod, nome.value, cat.value, un.value, Number(qtd.value || 0)).then(function (r) {
-        S.estSujo = true; aviso('Material cadastrado: ' + r.id + '.'); carregarEstoque();
+      chamar('adminNovoMaterial', S.cod, nome.value, cat.value, un.value, Number(qtd.value || 0), usado.checked, baseId).then(function (r) {
+        S.estSujo = true; aviso((usado.checked ? 'Material usado cadastrado: ' : 'Material cadastrado: ') + r.id + '.' + (r.pendente ? ' O saldo inicial foi para a aprovação de ' + S.nomePrincipal + '.' : ''));
+        if (r.pendente) recarregar(); else carregarEstoque();
       }).catch(function (e) { ok.disabled = false; erro.textContent = msg(e); });
     } });
-    return el('div', { cls: 'novo' }, dl,
-      el('label', { txt: 'Nome do material (padrão: Item Medida Marca)' }), nome,
+    return el('div', { cls: 'novo' }, dl, dlN,
+      el('label', { cls: 'mostrar', for: 'nm-usado', style: 'margin-top:0' }, usado, 'É material usado (lista separada, aparece em vermelho)'),
+      el('div', { cls: 'grade2' }, blocoBase),
+      el('label', { for: 'nm-nome', txt: 'Nome do material (padrão: Item Medida Marca)' }), nome,
       el('div', { cls: 'grade2' },
-        el('div', null, el('label', { txt: 'Categoria' }), cat),
-        el('div', null, el('label', { txt: 'Unidade' }), un),
-        el('div', null, el('label', { txt: 'Quantidade inicial no galpão' }), qtd)),
+        el('div', null, el('label', { for: 'nm-cat', txt: 'Categoria' }), cat),
+        el('div', null, el('label', { for: 'nm-un', txt: 'Unidade' }), un),
+        el('div', null, el('label', { for: 'nm-qtd', txt: 'Quantidade inicial no galpão' }), qtd)),
+      S.principal ? null : el('div', { cls: 'nota', txt: 'A quantidade inicial vai para a aprovação de ' + S.nomePrincipal + ' antes de entrar no estoque.' }),
       el('div', { cls: 'acoes' }, ok), erro);
   }
 })();
